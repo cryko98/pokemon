@@ -180,6 +180,39 @@ export default function GameController({
     }
   };
 
+  // Helper: Trigger beautiful celebratory victory fireworks
+  const createFirework = (x: number, y: number) => {
+    const palette = ['#FBBF24', '#EF4444', '#10B981', '#06B6D4', '#8B5CF6', '#EC4899', '#F97316', '#FFFFFF'];
+    const primaryColor = palette[Math.floor(Math.random() * palette.length)];
+    const secondaryColor = palette[Math.floor(Math.random() * palette.length)];
+    
+    // Create a spectacular cascading circular shockwave of fireworks particles
+    const particleCount = 45 + Math.floor(Math.random() * 25);
+    for (let i = 0; i < particleCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.0 + Math.random() * 6.5;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      
+      const life = 35 + Math.floor(Math.random() * 35);
+      const useColor = Math.random() > 0.35 ? primaryColor : secondaryColor;
+      
+      particlesRef.current.push({
+        id: Math.random().toString(),
+        x,
+        y,
+        vx,
+        vy,
+        radius: 1.0 + Math.random() * 2.5,
+        color: useColor,
+        alpha: 1.0,
+        life,
+        maxLife: life,
+        gravity: 0.045 + Math.random() * 0.04
+      });
+    }
+  };
+
   // Combat collision: Check proximity and apply hit mechanics
   const triggerMeleeAttack = useCallback((attacker: Fighter, defender: Fighter, attackType: 'quick' | 'heavy' | 'ultimate') => {
     const isPlayer = attacker.id === 'player';
@@ -555,6 +588,12 @@ export default function GameController({
         setTimeout(() => {
           setMatchOver(true);
           setMatchWinner('player');
+          // Launch introductory glorious firework celebrations!
+          for (let k = 0; k < 5; k++) {
+            setTimeout(() => {
+              createFirework(150 + Math.random() * 500, 70 + Math.random() * 110);
+            }, k * 280);
+          }
         }, 1200);
       } else {
         setTimeout(() => {
@@ -925,6 +964,13 @@ export default function GameController({
         return part.life > 0;
       });
 
+      // 5. Celebrate match victory with continuous background fireworks
+      if (matchOver && matchWinner === 'player' && tickCount % 24 === 0) {
+        const fx = 100 + Math.random() * 600;
+        const fy = 40 + Math.random() * 140;
+        createFirework(fx, fy);
+      }
+
       // Reduce screen shake
       if (screenShakeRef.current > 0) {
         screenShakeRef.current -= 0.85;
@@ -964,7 +1010,7 @@ export default function GameController({
 
     animId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animId);
-  }, [playerPokemon, cpuPokemon, selectedArena, difficulty, roundNumber, timer, roundOver, matchOver, triggerMeleeAttack, fireSpecialProjectile, executeUltimateMove, roundAnnouncement]);
+  }, [playerPokemon, cpuPokemon, selectedArena, difficulty, roundNumber, timer, roundOver, matchOver, matchWinner, triggerMeleeAttack, fireSpecialProjectile, executeUltimateMove, roundAnnouncement]);
 
 
   // Quick helper for triggering controls from virtual click pads!

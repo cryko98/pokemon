@@ -5,6 +5,7 @@ import { audio } from '../utils/audio';
 import PokemonCard from './PokemonCard';
 import { Sword, Play, AlertTriangle } from 'lucide-react';
 import PokeBall from './PokeBall';
+import BoosterPack from './BoosterPack';
 
 interface MenuSelectorProps {
   onStartFight: (playerPokemon: PokemonCharacter, cpuPokemon: PokemonCharacter, selectedArena: Arena) => void;
@@ -15,6 +16,7 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
   const [selectedP1, setSelectedP1] = useState<PokemonCharacter>(POKEMONS[0]);
   const [selectedCpu, setSelectedCpu] = useState<PokemonCharacter>(POKEMONS[1]);
   const [selectedArena, setSelectedArena] = useState<Arena>(ARENAS[0]);
+  const [boosterPackActive, setBoosterPackActive] = useState(false);
 
   const startMatch = () => {
     audio.playBattleStart();
@@ -102,6 +104,17 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
                     <PokeBall className="w-5 h-5 flex-shrink-0" type="classic" /> PLAYER 1 (YOU)
                   </h3>
                 </div>
+
+                {/* Booster Pack Random Opener Option */}
+                <button
+                  onClick={() => {
+                    setBoosterPackActive(true);
+                    audio.playSelect();
+                  }}
+                  className="w-full mb-4 bg-gradient-to-r from-red-600 via-amber-500 to-yellow-500 hover:from-red-700 hover:to-yellow-600 text-white font-orbitron font-black text-[10px] tracking-widest py-3 px-4 rounded-xl flex items-center justify-center gap-1.5 border border-yellow-300/30 cursor-pointer shadow-[0_4px_12px_rgba(245,158,11,0.25)] hover:shadow-[0_4px_22px_rgba(245,158,11,0.45)] transition-all duration-300 uppercase animate-pulse"
+                >
+                  🎁 RIP OPEN MYSTERY BOOSTER PACK!
+                </button>
 
                 {/* Grid Choices - Custom spritted circles! */}
                 <div className="grid grid-cols-4 gap-1.5 mb-5">
@@ -270,6 +283,17 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
         </div>
 
       </div>
+
+      {boosterPackActive && (
+        <BoosterPack 
+          onClose={() => setBoosterPackActive(false)}
+          onAccept={(pokemon) => {
+            selectP1Character(pokemon);
+            setBoosterPackActive(false);
+            onStartFight(pokemon, selectedCpu, selectedArena);
+          }}
+        />
+      )}
 
     </div>
   );
