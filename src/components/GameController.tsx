@@ -3,7 +3,7 @@ import { POKEMONS, ARENAS } from '../data';
 import { Fighter, Projectile, CombatText, Particle, Arena, PokemonCharacter } from '../types';
 import { drawFighter, drawProjectile, drawCombatText, drawParticle, drawArenaBackground } from '../utils/renderer';
 import { audio } from '../utils/audio';
-import { Sword, RotateCcw, Shield, ShieldCheck, Zap, Volume2, VolumeX, Trophy, Sparkles, ChevronLeft, Flame, Waves, Skull, UserCheck } from 'lucide-react';
+import { Sword, RotateCcw, Shield, ShieldCheck, Zap, Volume2, VolumeX, Trophy, Sparkles, ChevronLeft, Flame, Waves, Skull, UserCheck, Star } from 'lucide-react';
 
 interface GameControllerProps {
   playerPokemon: PokemonCharacter;
@@ -123,6 +123,19 @@ export default function GameController({
     ArrowDown: false
   });
 
+  // Block viewport scrolling hook during live combat
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+    };
+  }, []);
+
   // Sound toggler
   const toggleMute = () => {
     const newState = !soundOn;
@@ -225,7 +238,7 @@ export default function GameController({
       screenShakeRef.current = attackType === 'quick' ? 8 : attackType === 'heavy' ? 16 : 28;
       if (isDefBlocked) {
         audio.playBlock();
-        addCombatText('KIVÉDVE!', defender.x, defender.y - 50, '#67E8F9', 20);
+        addCombatText('BLOCKED!', defender.x, defender.y - 50, '#67E8F9', 20);
         createExplosion(defender.x, defender.y - 25, '#CBD5E1', 10, 2);
       } else {
         if (attackType === 'heavy' || attackType === 'ultimate') {
@@ -250,7 +263,7 @@ export default function GameController({
         const isCritical = attackType === 'heavy' && Math.random() > 0.6;
         const damageColor = isCritical ? '#EF4444' : attackType === 'ultimate' ? '#FBBF24' : '#F8FAFC';
         addCombatText(
-          `${isCritical ? 'KRITIKUS! ' : ''}-${finalDamage}`, 
+          `${isCritical ? 'CRITICAL! ' : ''}-${finalDamage}`, 
           defender.x + (Math.random() - 0.5) * 15, 
           defender.y - 45, 
           damageColor, 
@@ -660,7 +673,7 @@ export default function GameController({
         p1.vx *= 0.85;
       }
 
-      // --- JOBB OLDALI CPU AI INTELLIGENS MOZGATÁSI RECIPIENSE --- (cpuRef)
+      // --- RIGHT-SIDE CPU AI INTELLIGENS MOVEMENT DECISION TREE --- (cpuRef)
       if (cpu.state !== 'fainted' && cpu.state !== 'hit' && !roundAnnouncement && !roundOver) {
         const dx = p1.x - cpu.x;
         const dist = Math.abs(dx);
@@ -1029,21 +1042,21 @@ export default function GameController({
 
 
   return (
-    <div className="flex flex-col items-center w-full max-w-5xl px-2 py-4 select-none">
+    <div className="flex flex-col justify-between w-full h-[88dvh] sm:h-[91dvh] max-w-5xl px-1 sm:px-2 py-1 select-none overflow-hidden gap-1.5 sm:gap-2">
       
-      {/* HEADER CONTROL BAR WITH LEAGUE STATS */}
-      <div className="flex flex-wrap items-center justify-between w-full backdrop-blur-md bg-slate-950/40 border-t border-x border-white/5 p-4 rounded-t-2xl gap-4 shadow-xl z-10">
+      {/* HEADER CONTROL BAR WITH LEAGUE STATS - REPOSITIONED AND COMPACTED */}
+      <div className="flex items-center justify-between w-full backdrop-blur-md bg-slate-950/70 border border-red-500/10 py-1.5 px-3 rounded-xl gap-2 shadow-lg z-10 shrink-0">
         <button
           onClick={onExitToMenu}
-          className="flex items-center gap-2 text-xs font-mono font-medium text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 px-3.5 py-2 rounded-xl transition shadow-md cursor-pointer"
+          className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 px-3 py-1.5 rounded-lg transition shadow cursor-pointer uppercase shrink-0"
         >
-          <ChevronLeft className="w-4 h-4 text-amber-500 animate-pulse" /> Exit to Main Menu
+          <ChevronLeft className="w-3.5 h-3.5 text-yellow-400" /> Back
         </button>
 
         {/* Difficulty Selection */}
-        <div className="flex items-center gap-2 bg-slate-950/60 px-3.5 py-1.5 rounded-xl border border-white/5 shadow-inner">
-          <span className="text-[11px] font-mono text-slate-400">Difficulty:</span>
-          <div className="flex gap-1.5">
+        <div className="flex items-center gap-1.5 bg-slate-900/40 px-2 my-0.5 py-1 rounded-lg border border-white/5 shadow-inner">
+          <span className="text-[9px] sm:text-[10px] font-mono text-slate-400 uppercase font-black">Diff:</span>
+          <div className="flex gap-1">
             {(['easy', 'normal', 'veteran'] as const).map((level) => (
               <button
                 key={level}
@@ -1051,13 +1064,13 @@ export default function GameController({
                   setDifficulty(level);
                   audio.playSelect();
                 }}
-                className={`text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg uppercase transition-all duration-300 ${
+                className={`text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded uppercase transition-all duration-300 ${
                   difficulty === level
-                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
-                    : 'text-slate-400 hover:bg-white/5'
+                    ? 'bg-gradient-to-r from-red-500 to-amber-500 text-white shadow-[0_0_8px_rgba(239,68,68,0.3)]'
+                    : 'text-slate-450 hover:bg-white/5'
                 }`}
               >
-                {level === 'easy' ? 'Easy' : level === 'normal' ? 'Normal' : 'Veteran'}
+                {level === 'easy' ? 'Easy' : level === 'normal' ? 'Normal' : 'Vet'}
               </button>
             ))}
           </div>
@@ -1066,226 +1079,216 @@ export default function GameController({
         {/* Audio Mute buttons */}
         <button
           onClick={toggleMute}
-          className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl border border-white/5 transition-all shadow-md cursor-pointer"
+          className="p-1.5 text-slate-400 hover:text-white bg-slate-900/40 hover:bg-white/10 rounded-lg border border-white/5 transition shadow cursor-pointer shrink-0"
           title="Mute Audio"
         >
-          {soundOn ? <Volume2 className="w-4 h-4 text-emerald-400 drop-shadow-[0_0_4px_#34d399]" /> : <VolumeX className="w-4 h-4 text-rose-500" />}
+          {soundOn ? <Volume2 className="w-3.5 h-3.5 text-yellow-400 drop-shadow-[0_0_4px_#facc15]" /> : <VolumeX className="w-3.5 h-3.5 text-rose-500" />}
         </button>
       </div>
 
-      {/* FIGHT BAR HUD STATS */}
-      <div className="relative w-full backdrop-blur-md bg-[#090b11]/75 border-x border-white/5 p-5 flex flex-col items-center gap-3.5 shadow-2xl z-10">
+      {/* FIGHT BAR HUD STATS - SLIM AND COMPACT FOR MAXIMUM VIEWPORT ALLOCATION */}
+      <div className="relative w-full backdrop-blur-md bg-[#090b11]/80 border border-red-500/10 p-2 sm:p-3 pb-3 sm:pb-4 flex flex-col items-center gap-2 shadow-2xl z-10 rounded-xl shrink-0">
         
         {/* Combo Floats */}
-        <div className="absolute top-24 left-6 z-10 pointer-events-none transition-all">
+        <div className="absolute top-16 left-4 z-10 pointer-events-none transition-all">
           {p1Combo > 1 && (
             <div className="flex flex-col items-start animate-bounce">
-              <span className="text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 tracking-wider font-orbitron drop-shadow-[0_0_15px_rgba(245,158,11,0.5)]">
+              <span className="text-xl sm:text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 tracking-wider font-orbitron drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse">
                 {p1Combo} HITS!
-              </span>
-              <span className="text-[9px] font-mono uppercase bg-amber-500 text-slate-950 px-2 py-0.5 font-bold rounded shadow">
-                Combo Sequence
               </span>
             </div>
           )}
         </div>
 
-        <div className="absolute top-24 right-6 z-10 pointer-events-none transition-all">
+        <div className="absolute top-16 right-4 z-10 pointer-events-none transition-all">
           {cpuCombo > 1 && (
             <div className="flex flex-col items-end animate-bounce">
-              <span className="text-3xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-red-400 tracking-wider font-orbitron drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]">
+              <span className="text-xl sm:text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-400 tracking-wider font-orbitron drop-shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
                 {cpuCombo} HITS!
-              </span>
-              <span className="text-[9px] font-mono uppercase bg-rose-500 text-white px-2 py-0.5 font-bold rounded shadow">
-                CPU Combo!
               </span>
             </div>
           )}
         </div>
 
         {/* Core Bars Container */}
-        <div className="flex items-center justify-between w-full gap-5">
+        <div className="flex items-center justify-between w-full gap-3 sm:gap-4">
           
           {/* PLAYER 1 HEALTH & POWER METERS */}
-          <div className="flex-1 flex flex-col items-start gap-1.5">
+          <div className="flex-1 flex flex-col items-start gap-1">
             <div className="flex items-center justify-between w-full">
-              <span className="font-display font-bold text-slate-100 flex items-center gap-2">
-                <span className="text-[10px] bg-amber-400 text-slate-900 font-extrabold px-1.5 py-0.2 rounded font-mono shadow-sm">P1</span>
+              <span className="font-display font-black text-slate-100 flex items-center gap-1.5 text-xs sm:text-sm">
+                <span className="text-[9px] bg-yellow-400 text-slate-900 font-extrabold px-1 py-0.2 rounded font-mono shadow-sm">P1</span>
                 {playerPokemon.name}
               </span>
-              <span className="text-xs font-mono font-medium text-slate-400">{p1Hp} / {playerPokemon.maxHp} HP</span>
+              <span className="text-[10px] font-mono font-medium text-slate-400">{p1Hp} / {playerPokemon.maxHp} HP</span>
             </div>
             
             {/* HP Slot */}
-            <div className="w-full bg-slate-950/80 rounded-xl border border-white/5 h-6 overflow-hidden shadow-inner relative">
+            <div className="w-full bg-slate-950/80 rounded-lg border border-white/5 h-4 sm:h-5 overflow-hidden shadow-inner relative">
               <div 
-                className="h-full bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 transition-all duration-100 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                className="h-full bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-300 transition-all duration-100 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
                 style={{ width: `${(p1Hp / playerPokemon.maxHp) * 100}%` }}
               />
-              {/* Damage backing indicator */}
-              <div className="absolute top-0 right-0 bottom-0 bg-rose-500/10 pointer-events-none" style={{ left: `${(p1Hp / playerPokemon.maxHp) * 100}%` }} />
-              {/* Shiny Glass Shimmer */}
+              <div className="absolute top-0 right-0 bottom-0 bg-red-500/10 pointer-events-none" style={{ left: `${(p1Hp / playerPokemon.maxHp) * 100}%` }} />
               <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
             </div>
 
             {/* Ultimate Energy Progress Meter */}
-            <div className="w-full flex items-center gap-2 mt-1">
-              <span className="text-[9px] font-mono font-black text-amber-500 tracking-wider flex items-center gap-0.5">
-                <Zap className={`w-3.5 h-3.5 ${p1Energy >= 100 ? 'text-amber-400 animate-pulse' : 'text-slate-500'}`} /> ENERGY
+            <div className="w-full flex items-center gap-1.5 mt-0.5">
+              <span className="text-[8px] sm:text-[9px] font-mono font-black text-yellow-400 tracking-wider flex items-center gap-0.5 shrink-0">
+                <Zap className={`w-3 h-3 ${p1Energy >= 100 ? 'text-yellow-400 animate-pulse' : 'text-slate-550'}`} /> POW
               </span>
-              <div className="flex-1 bg-slate-950 rounded-lg border border-white/5 h-2.5 overflow-hidden relative shadow-inner">
+              <div className="flex-1 bg-slate-950 rounded-md border border-white/5 h-2 overflow-hidden relative shadow-inner">
                 <div 
-                  className={`h-full transition-all duration-200 ${p1Energy >= 100 ? 'bg-gradient-to-r from-amber-400 to-yellow-300 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-amber-600'}`}
+                  className={`h-full transition-all duration-200 ${p1Energy >= 100 ? 'bg-gradient-to-r from-yellow-400 to-red-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-yellow-500'}`}
                   style={{ width: `${p1Energy}%` }}
                 />
               </div>
               {p1Energy >= 100 && (
-                <span className="text-[8px] font-sans font-black bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 px-1.5 py-0.2 rounded-md animate-pulse shadow-sm">ULTI READY</span>
+                <span className="text-[7.5px] font-sans font-black bg-gradient-to-r from-yellow-400 to-red-500 text-slate-950 px-1 py-0.2 rounded animate-pulse shadow-sm">CRITICAL READY</span>
               )}
             </div>
           </div>
 
           {/* TIMER ROUND STATS ROUND MIDDLE */}
-          <div className="flex flex-col items-center justify-center bg-slate-950 border border-amber-500/30 w-16 h-16 rounded-full relative shadow-[0_0_15px_rgba(245,158,11,0.1)] shrink-0 select-none">
-            <span className="text-2xl font-black font-orbitron text-amber-400 leading-none drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]">{timer}</span>
-            <span className="text-[8px] font-mono text-slate-500 uppercase tracking-wider mt-0.5">Sec</span>
+          <div className="flex flex-col items-center justify-center bg-slate-950 border-2 border-red-500/30 w-11 h-11 sm:w-13 sm:h-13 rounded-full relative shadow-[0_0_12px_rgba(239,68,68,0.15)] shrink-0 select-none">
+            <span className="text-xl sm:text-2xl font-black font-orbitron text-yellow-300 leading-none drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]">{timer}</span>
+            <span className="text-[7px] font-mono text-slate-500 uppercase tracking-wider mt-0.5">Sec</span>
 
             {/* Round wins dots */}
-            <div className="absolute -bottom-6 flex items-center gap-1.5 bg-slate-950/60 px-2.5 py-1 rounded-full border border-white/5 shadow-md">
-              <div className={`w-2 h-2 rounded-full border ${playerWins >= 1 ? 'bg-amber-400 border-amber-300 shadow-[0_0_8px_#fbbf24]' : 'bg-slate-800 border-slate-705'}`} />
-              <div className={`w-2 h-2 rounded-full border ${playerWins >= 2 ? 'bg-amber-400 border-amber-300 shadow-[0_0_8px_#fbbf24]' : 'bg-slate-800 border-slate-705'}`} />
-              <span className="text-[9px] text-slate-500 mx-0.5 font-bold font-mono">VS</span>
-              <div className={`w-2 h-2 rounded-full border ${cpuWins >= 1 ? 'bg-rose-500 border-rose-400 shadow-[0_0_8px_#ef4444]' : 'bg-slate-800 border-slate-705'}`} />
-              <div className={`w-2 h-2 rounded-full border ${cpuWins >= 2 ? 'bg-rose-500 border-rose-400 shadow-[0_0_8px_#ef4444]' : 'bg-slate-800 border-slate-705'}`} />
+            <div className="absolute -bottom-4.5 flex items-center gap-1 bg-slate-950 px-2 py-0.5 rounded-full border border-red-500/20 shadow-md">
+              <div className={`w-1.5 h-1.5 rounded-full border ${playerWins >= 1 ? 'bg-yellow-400 border-yellow-300 shadow-[0_0_6px_#fbbf24]' : 'bg-slate-800 border-slate-700'}`} />
+              <div className={`w-1.5 h-1.5 rounded-full border ${playerWins >= 2 ? 'bg-yellow-400 border-yellow-300 shadow-[0_0_6px_#fbbf24]' : 'bg-slate-800 border-slate-700'}`} />
+              <span className="text-[7.5px] text-slate-550 font-bold font-mono">VS</span>
+              <div className={`w-1.5 h-1.5 rounded-full border ${cpuWins >= 1 ? 'bg-red-500 border-red-400 shadow-[0_0_6px_#ef4444]' : 'bg-slate-800 border-slate-700'}`} />
+              <div className={`w-1.5 h-1.5 rounded-full border ${cpuWins >= 2 ? 'bg-red-500 border-red-400 shadow-[0_0_6px_#ef4444]' : 'bg-slate-800 border-slate-700'}`} />
             </div>
           </div>
 
           {/* CPU / FIGHTER 2 HP & POWER METERS */}
-          <div className="flex-1 flex flex-col items-end gap-1.5">
+          <div className="flex-1 flex flex-col items-end gap-1">
             <div className="flex items-center justify-between w-full flex-row-reverse">
-              <span className="font-display font-bold text-slate-100 flex items-center justify-end gap-2">
+              <span className="font-display font-black text-slate-100 flex items-center justify-end gap-1.5 text-xs sm:text-sm">
                 {cpuPokemon.name}
-                <span className="text-[10px] bg-rose-500 text-white font-extrabold px-1.5 py-0.2 rounded font-mono shadow-sm">CPU</span>
+                <span className="text-[9px] bg-red-600 text-white font-extrabold px-1 py-0.2 rounded font-mono shadow-sm">CPU</span>
               </span>
-              <span className="text-xs font-mono font-medium text-slate-400">{cpuHp} / {cpuPokemon.maxHp} HP</span>
+              <span className="text-[10px] font-mono font-medium text-slate-400">{cpuHp} / {cpuPokemon.maxHp} HP</span>
             </div>
             
             {/* HP Slot */}
-            <div className="w-full bg-slate-950/80 rounded-xl border border-white/5 h-6 overflow-hidden shadow-inner relative flex justify-end">
+            <div className="w-full bg-slate-950/80 rounded-lg border border-white/5 h-4 sm:h-5 overflow-hidden shadow-inner relative flex justify-end">
               <div 
-                className="h-full bg-gradient-to-l from-rose-500 via-red-400 to-rose-500 transition-all duration-100 shadow-[0_0_10px_rgba(239,68,68,0.3)]"
+                className="h-full bg-gradient-to-l from-red-600 via-rose-500 to-red-400 transition-all duration-100 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
                 style={{ width: `${(cpuHp / cpuPokemon.maxHp) * 100}%` }}
               />
-              <div className="absolute top-0 left-0 bottom-0 bg-rose-500/10 pointer-events-none" style={{ right: `${(cpuHp / cpuPokemon.maxHp) * 100}%` }} />
+              <div className="absolute top-0 left-0 bottom-0 bg-red-500/10 pointer-events-none" style={{ right: `${(cpuHp / cpuPokemon.maxHp) * 100}%` }} />
               <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
             </div>
 
             {/* CPU Energy Progress Meter */}
-            <div className="w-full flex items-center gap-2 mt-1 flex-row-reverse">
-              <span className="text-[9px] font-mono font-black text-rose-400 tracking-wider flex items-center gap-0.5">
-                <Zap className={`w-3.5 h-3.5 ${cpuEnergy >= 100 ? 'text-rose-400 animate-pulse' : 'text-slate-500'}`} /> ENERGY
+            <div className="w-full flex items-center gap-1.5 mt-0.5 flex-row-reverse">
+              <span className="text-[8px] sm:text-[9px] font-mono font-black text-red-400 tracking-wider flex items-center gap-0.5 shrink-0">
+                <Zap className={`w-3 h-3 ${cpuEnergy >= 100 ? 'text-red-400 animate-pulse' : 'text-slate-550'}`} /> POW
               </span>
-              <div className="flex-1 bg-slate-950 rounded-lg border border-white/5 h-2.5 overflow-hidden relative shadow-inner">
+              <div className="flex-1 bg-slate-950 rounded-md border border-white/5 h-2 overflow-hidden relative shadow-inner">
                 <div 
-                  className={`h-full transition-all duration-200 float-right ${cpuEnergy >= 100 ? 'bg-gradient-to-r from-rose-400 to-red-400 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-rose-600'}`}
+                  className={`h-full transition-all duration-200 float-right ${cpuEnergy >= 100 ? 'bg-gradient-to-r from-red-500 to-rose-400 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-red-500'}`}
                   style={{ width: `${cpuEnergy}%`, float: 'right' }}
                 />
               </div>
               {cpuEnergy >= 100 && (
-                <span className="text-[8px] font-sans font-black bg-rose-500 text-white px-1.5 py-0.2 rounded-md animate-pulse shadow-sm">ULTI READY</span>
+                <span className="text-[7.5px] font-sans font-black bg-red-500 text-white px-1 py-0.2 rounded animate-pulse shadow-sm">CRITICAL READY</span>
               )}
             </div>
           </div>
 
         </div>
 
-        {/* Current Arena Label under timer */}
-        <div className="text-[10px] font-mono text-slate-500 mt-2 uppercase tracking-widest text-center">
-          Arena: <span className="text-amber-400 font-bold">{selectedArena.name}</span> • Round #{roundNumber}
+        {/* Current Arena Label under timer --- HIGH CONTRAST */}
+        <div className="text-[9px] font-mono text-slate-400 flex items-center gap-1.5 select-none font-bold uppercase tracking-wider justify-center">
+          Stadium: <span className="text-yellow-400 font-extrabold">{selectedArena.name}</span> • Match Round #{roundNumber}
         </div>
       </div>
 
-      {/* CORE 2D GAME CANVAS CONTAINER */}
-      <div className="relative w-full bg-slate-950 border-x border-b border-white/5 shadow-2xl overflow-hidden aspect-[2/1] rounded-b-2xl shadow-[0_20px_50px_rgba(0,0,0,0.57)]">
+      {/* CORE 2D GAME CANVAS CONTAINER - FULL RESOLUTION DYNAMIC VIEWPORT ADAPTATION, NO SCROLLS */}
+      <div className="relative w-full flex-1 min-h-0 bg-[#06080e] border-2 border-red-500/20 shadow-2xl overflow-hidden rounded-2xl flex items-center justify-center">
         
         <canvas 
           ref={canvasRef}
-          className="w-full h-full block cursor-crosshair"
+          className="max-w-full max-h-full aspect-[2/1] object-contain block cursor-crosshair rounded-xl shadow-inner shadow-black"
           style={{ imageRendering: 'pixelated' }}
         />
 
         {/* ROUND ANNOUNCEMENTS BANNER OVERLAY */}
         {roundAnnouncement && (
-          <div className="absolute inset-0 bg-slate-950/80 flex items-center justify-center p-4 z-20 animate-fade-in backdrop-blur-sm">
+          <div className="absolute inset-0 bg-slate-950/85 flex items-center justify-center p-4 z-20 animate-fade-in backdrop-blur-xs">
             <div className="text-center">
-              <div className="text-[10px] font-mono font-extrabold text-amber-500 tracking-[0.25em] uppercase mb-2 animate-pulse">BATTLE COMMENCING!</div>
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-200 to-slate-200 select-none drop-shadow-[0_2px_15px_rgba(245,158,11,0.55)] font-orbitron py-2">
+              <div className="text-[10px] font-mono font-extrabold text-yellow-400 tracking-[0.25em] uppercase mb-1.5 animate-pulse">MATCH COMMENCING</div>
+              <h2 className="text-3xl md:text-5xl lg:text-5.5xl font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-yellow-200 to-red-400 select-none drop-shadow-[0_2px_15px_rgba(234,179,8,0.55)] font-orbitron py-1">
                 {roundAnnouncement}
               </h2>
-              <p className="text-[10px] font-mono text-slate-400 mt-3.5 tracking-wide">Controls: [A/D] - Move, [W] - Jump, [S] - Defend, [J/K/L/I] - Action / Combat</p>
+              <p className="text-[9px] font-mono text-slate-400 mt-2 tracking-wide font-medium">Use Virtual touch buttons on your screen bottom or Keyboard action keys!</p>
             </div>
           </div>
         )}
 
         {/* ROUND OVER / KO BANNER OVERLAY */}
         {roundOver && !matchOver && !roundAnnouncement && (
-          <div className="absolute inset-0 bg-slate-950/85 flex items-center justify-center p-4 z-20 backdrop-blur-sm">
+          <div className="absolute inset-0 bg-slate-950/85 flex items-center justify-center p-4 z-20 backdrop-blur-xs">
             <div className="text-center animate-bounce">
-              <h2 className="text-5xl md:text-6xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-red-400 to-rose-600 tracking-wider drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-orbitron py-1">
+              <h2 className="text-4xl md:text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-white to-yellow-450 tracking-wider drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-orbitron py-0.5">
                 K. O.
               </h2>
-              <p className="text-base font-display font-bold text-white mt-3 bg-slate-950/40 px-4 py-1.5 rounded-full border border-white/5">
+              <p className="text-sm font-display font-black text-white mt-2 bg-slate-950/50 px-4 py-1.5 rounded-full border border-red-500/20">
                 {roundWinnerName === 'DRAW!' ? 'DRAW!' : `${roundWinnerName} wins the round!`}
               </p>
-              <p className="text-[10px] font-mono text-slate-500 mt-2">CPU preparing for the next round...</p>
+              <p className="text-[9px] font-mono text-slate-550 mt-2 font-bold uppercase tracking-wider">Loading next round...</p>
             </div>
           </div>
         )}
 
         {/* MATCH GAME OVER DIALOG VIEW */}
         {matchOver && (
-          <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 z-30 transition backdrop-blur-md animate-fade-in">
-            <div className="max-w-md w-full bg-slate-950 border border-white/10 p-7 rounded-2xl text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-4 z-30 transition backdrop-blur-md animate-fade-in">
+            <div className="max-w-md w-full bg-slate-950 border-2 border-red-500/25 p-5 rounded-2xl text-center shadow-2xl relative overflow-hidden">
               
-              {/* Decorative glows */}
-              <div className="absolute -top-12 -left-12 w-32 h-32 bg-amber-500/10 blur-2xl rounded-full" />
-              <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-slate-900/40 blur-2xl rounded-full" />
+              <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/10 blur-2xl rounded-full animate-pulse" />
+              <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-red-600/10 blur-2xl rounded-full animate-pulse" />
 
-              {/* Decorative crown / trophy badge */}
-              <div className="mx-auto w-16 h-16 bg-white/5 rounded-full border border-white/5 flex items-center justify-center mb-4.5 shadow-inner">
-                <Trophy className={`w-8 h-8 ${matchWinner === 'player' ? 'text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.5)] animate-bounce' : 'text-slate-600'}`} />
+              <div className="mx-auto w-12 h-12 bg-white/5 rounded-full border border-white/5 flex items-center justify-center mb-3.5 shadow-inner">
+                <Trophy className={`w-6 h-6 ${matchWinner === 'player' ? 'text-yellow-450 drop-shadow-[0_0_12px_rgba(245,158,11,0.5)] animate-bounce' : 'text-slate-600'}`} />
               </div>
 
-              <h2 className="text-3xl font-orbitron font-black italic tracking-tight text-white uppercase bg-gradient-to-r from-white via-amber-200 to-slate-200 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-orbitron font-black italic tracking-tight text-white uppercase bg-gradient-to-r from-white via-yellow-250 to-red-400 bg-clip-text text-transparent">
                 {matchWinner === 'player' ? 'Victory!' : 'Defeat...'}
               </h2>
 
-              <p className="text-xs font-sans text-slate-300 mt-3 mb-6.5 leading-relaxed font-light">
+              <p className="text-[11px] font-sans text-slate-350 mt-2 mb-4 leading-relaxed font-light">
                 {matchWinner === 'player' ? (
-                  <>Congratulations! Your controlled <span className="font-bold text-amber-400 font-display">{playerPokemon.name}</span> has defeated the CPU-controlled <span className="font-bold text-slate-400">{cpuPokemon.name}</span> in the pocket tournament league!</>
+                  <>Congratulations! Your controlled <span className="font-bold text-yellow-400 font-display">{playerPokemon.name}</span> has defeated the CPU-controlled <span className="font-bold text-slate-400">{cpuPokemon.name}</span> in the pocket tournament league!</>
                 ) : (
-                  <>Defeated! The CPU-controlled <span className="font-bold text-rose-400">{cpuPokemon.name}</span> was too strong this match. Practice and try again!</>
+                  <>Defeated! The CPU-controlled <span className="font-bold text-red-400">{cpuPokemon.name}</span> was too strong this match. Practice and try again!</>
                 )}
               </p>
 
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-2">
                 <button
                   onClick={restartMatch}
-                  className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-orbitron font-extrabold py-3 rounded-xl transition shadow-[0_0_15px_rgba(245,158,11,0.25)] flex items-center justify-center gap-2 cursor-pointer text-xs uppercase tracking-wider"
+                  className="w-full bg-gradient-to-r from-yellow-450 to-red-500 hover:from-yellow-500 hover:to-red-600 text-white font-orbitron font-extrabold py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(239,68,68,0.25)] flex items-center justify-center gap-1.5 cursor-pointer text-xs uppercase tracking-wider"
                 >
-                  <RotateCcw className="w-4 h-4" /> Rematch (Play Again)
+                  <RotateCcw className="w-3.5 h-3.5" /> Rematch (Play Again)
                 </button>
                 
-                <div className="grid grid-cols-2 gap-2 mt-1">
+                <div className="grid grid-cols-2 gap-2 mt-0.5">
                   <button
                     onClick={onSelectDifferentCharacters}
-                    className="bg-white/5 hover:bg-white/10 text-[10px] font-bold text-slate-300 hover:text-white py-2.5 rounded-xl transition border border-white/5 uppercase tracking-wide cursor-pointer"
+                    className="bg-white/5 hover:bg-white/10 text-[9px] font-bold text-slate-300 hover:text-white py-2 rounded-lg transition border border-white/5 uppercase tracking-wider cursor-pointer font-mono"
                   >
-                    Swap Pokémon
+                    Swap Hero
                   </button>
                   <button
                     onClick={onExitToMenu}
-                    className="bg-white/5 hover:bg-white/10 text-[10px] font-bold text-slate-300 hover:text-white py-2.5 rounded-xl transition border border-white/5 uppercase tracking-wide cursor-pointer"
+                    className="bg-white/5 hover:bg-white/10 text-[9px] font-bold text-slate-300 hover:text-white py-2 rounded-lg transition border border-white/5 uppercase tracking-wider cursor-pointer font-mono"
                   >
                     Main Menu
                   </button>
@@ -1298,177 +1301,138 @@ export default function GameController({
 
       </div>
 
-      {/* DETAILED CONTROLS PANEL & RETRO TOUCH CONTROLLER PAD */}
-      <div className="mt-5 w-full grid grid-cols-1 md:grid-cols-12 gap-5">
+      {/* DETAILED DIRECT Retro Gamepad Controller PAD - FULL WIDTH AT THE VERY BOTTOM */}
+      <div className="w-full backdrop-blur-md bg-slate-950/70 border border-white/5 sm:border-red-500/10 px-3 py-2 sm:py-2.5 rounded-2xl shadow-xl flex flex-col justify-center shrink-0">
         
-        {/* Keyboard Controls Instructions Manual */}
-        <div className="md:col-span-4 backdrop-blur-md bg-slate-900/20 border border-white/5 p-5 rounded-2xl flex flex-col justify-between shadow-lg">
-          <div>
-            <span className="text-[10px] font-mono font-black text-amber-400 uppercase tracking-widest block mb-3.5 border-b border-white/5 pb-1">KEYBOARD CONTROLS:</span>
-            <ul className="text-xs font-mono text-slate-350 space-y-2.5">
-              <li className="flex justify-between border-b border-white/5 pb-1.5 font-light">
-                <span>Move (Left / Right):</span>
-                <span className="bg-slate-950 border border-white/10 px-2 py-0.5 rounded text-amber-400 text-[10px] font-bold">A / D</span>
-              </li>
-              <li className="flex justify-between border-b border-white/5 pb-1.5 font-light">
-                <span>Jump (Up):</span>
-                <span className="bg-slate-950 border border-white/10 px-2 py-0.5 rounded text-amber-400 text-[10px] font-bold">W / Space</span>
-              </li>
-              <li className="flex justify-between border-b border-white/5 pb-1.5 font-light">
-                <span>Block / Defend:</span>
-                <span className="bg-slate-950 border border-white/10 px-2 py-0.5 rounded text-amber-400 text-[10px] font-bold">S / Arrow Down</span>
-              </li>
-              <li className="flex justify-between border-b border-white/5 pb-1.5 font-light">
-                <span>Quick Punch:</span>
-                <span className="bg-slate-950 border border-white/10 px-2 py-0.5 rounded text-amber-400 text-[10px] font-bold">J or 1</span>
-              </li>
-              <li className="flex justify-between border-b border-white/5 pb-1.5 font-light">
-                <span>Heavy Kick:</span>
-                <span className="bg-slate-950 border border-white/10 px-2 py-0.5 rounded text-amber-400 text-[10px] font-bold">K or 2</span>
-              </li>
-              <li className="flex justify-between border-b border-white/5 pb-1.5 font-light">
-                <span>Special Projectile:</span>
-                <span className="bg-slate-950 border border-white/10 px-2 py-0.5 rounded text-amber-400 text-[10px] font-bold">L or 3</span>
-              </li>
-              <li className="flex justify-between font-light">
-                <span>Ultimate Move / Blast:</span>
-                <span className="bg-slate-950 border border-amber-500/30 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.25)]">I or 4</span>
-              </li>
-            </ul>
-          </div>
+        <div className="flex flex-row items-center gap-3 sm:gap-4 justify-between w-full">
+          
+          {/* 1. Direcetion D-PAD Cluster (LEFT, JUMP, RIGHT, BLOCK) */}
+          <div className="flex items-center gap-1.5 bg-slate-900/40 p-1 rounded-xl border border-white/5 shadow-inner scale-90 sm:scale-100 origin-left shrink-0">
+            <button
+              onMouseDown={() => triggerVirtualAction('left')}
+              onTouchStart={(e) => { e.preventDefault(); triggerVirtualAction('left'); }}
+              onMouseUp={() => releaseVirtualAction('left')}
+              onMouseLeave={() => releaseVirtualAction('left')}
+              onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('left'); }}
+              className="w-10 h-10 sm:w-11 sm:h-11 bg-red-600/15 hover:bg-red-600/30 border border-red-500/20 active:bg-red-600 rounded-lg flex flex-col items-center justify-center text-slate-300 shadow active:text-white font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-transform active:scale-95"
+              title="Left (A)"
+            >
+              <span className="text-[12px] sm:text-sm">◀</span>
+              <span className="text-[6.5px]">A</span>
+            </button>
 
-          <div className="bg-amber-500/10 border border-amber-500/15 p-3 rounded-xl mt-4">
-            <span className="text-[9px] font-mono font-black text-amber-300 uppercase tracking-widest block mb-1">Battle Tip:</span>
-            <p className="text-[10px] text-slate-400 leading-normal font-light">
-              Blocking absorbs 85% of incoming damage! Once your energy bar fills up to 100%, press the ULTIMATE key to launch your signature finisher!
-            </p>
-          </div>
-        </div>
-
-        {/* DIRECT TOUCH / MOUSE CONTROLS (THE RETRO GAMEPAD) */}
-        <div className="md:col-span-8 backdrop-blur-md bg-slate-900/20 border border-white/5 p-5 rounded-xl shadow-lg flex flex-col justify-center">
-          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block mb-4 text-center md:text-left">
-            Visual Retro Gamepad Controller (Perfect for mobile touch or mouse clicks!)
-          </span>
-
-          <div className="flex flex-col sm:flex-row items-center gap-4 justify-around">
-            
-            {/* Direction D-PAD Cluster */}
-            <div className="grid grid-cols-3 gap-2 w-32 h-32 shrink-0">
-              <div />
+            <div className="flex flex-col gap-1.5">
               <button
                 onMouseDown={() => triggerVirtualAction('jump')}
-                onTouchStart={() => triggerVirtualAction('jump')}
+                onTouchStart={(e) => { e.preventDefault(); triggerVirtualAction('jump'); }}
                 onMouseUp={() => releaseVirtualAction('jump')}
                 onMouseLeave={() => releaseVirtualAction('jump')}
-                onTouchEnd={() => releaseVirtualAction('jump')}
-                className="bg-white/5 hover:bg-white/10 border border-white/5 active:bg-amber-500 rounded-xl flex items-center justify-center p-2 text-slate-300 shadow-md transition-all font-display font-bold text-[10px] uppercase cursor-pointer select-none"
-                title="Jump"
+                onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('jump'); }}
+                className="w-10 h-8 sm:w-11 sm:h-9 bg-yellow-400/15 hover:bg-yellow-400/30 border border-yellow-400/20 active:bg-yellow-400 active:text-slate-950 rounded-lg flex flex-col items-center justify-center text-slate-300 shadow font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-all active:scale-95"
+                title="Jump (W)"
               >
-                JUMP
+                <span className="text-[9px]">▲</span>
+                <span className="text-[6px]">JUMP</span>
               </button>
-              <div />
-
-              <button
-                onMouseDown={() => triggerVirtualAction('left')}
-                onTouchStart={() => triggerVirtualAction('left')}
-                onMouseUp={() => releaseVirtualAction('left')}
-                onMouseLeave={() => releaseVirtualAction('left')}
-                onTouchEnd={() => releaseVirtualAction('left')}
-                className="bg-white/5 hover:bg-white/10 border border-white/5 active:bg-amber-500 rounded-xl flex items-center justify-center p-2 text-slate-300 shadow-md transition-all font-display font-bold text-[10px] uppercase cursor-pointer select-none"
-                title="Left"
-              >
-                LEFT
-              </button>
-              <div className="bg-slate-950 rounded-xl border border-white/5 flex items-center justify-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
-              </div>
-              <button
-                onMouseDown={() => triggerVirtualAction('right')}
-                onTouchStart={() => triggerVirtualAction('right')}
-                onMouseUp={() => releaseVirtualAction('right')}
-                onMouseLeave={() => releaseVirtualAction('right')}
-                onTouchEnd={() => releaseVirtualAction('right')}
-                className="bg-white/5 hover:bg-white/10 border border-white/5 active:bg-amber-500 rounded-xl flex items-center justify-center p-2 text-slate-300 shadow-md transition-all font-display font-bold text-[10px] uppercase cursor-pointer select-none"
-                title="Right"
-              >
-                RIGHT
-              </button>
-
-              <div />
+              
               <button
                 onMouseDown={() => triggerVirtualAction('block')}
-                onTouchStart={() => triggerVirtualAction('block')}
+                onTouchStart={(e) => { e.preventDefault(); triggerVirtualAction('block'); }}
                 onMouseUp={() => releaseVirtualAction('block')}
                 onMouseLeave={() => releaseVirtualAction('block')}
-                onTouchEnd={() => releaseVirtualAction('block')}
-                className="bg-white/5 hover:bg-white/10 border border-white/5 active:bg-amber-500 rounded-xl flex items-center justify-center p-2 text-slate-300 shadow-md transition-all font-display font-bold text-[10px] uppercase cursor-pointer select-none"
-                title="Block"
+                onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('block'); }}
+                className="w-10 h-8 sm:w-11 sm:h-9 bg-slate-800/60 hover:bg-slate-800 border border-slate-700 active:bg-red-500 rounded-lg flex flex-col items-center justify-center text-slate-400 active:text-white shadow font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-all active:scale-95"
+                title="Block (S)"
               >
-                BLOCK
-              </button>
-              <div />
-            </div>
-
-            {/* Attack Buttons Cluster */}
-            <div className="flex-1 w-full grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button
-                onClick={() => {
-                  triggerVirtualAction('quick');
-                  audio.playSelect();
-                }}
-                className="bg-white/5 hover:bg-white/10 border border-white/5 active:bg-yellow-400 hover:border-yellow-500/30 text-slate-100 p-3.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-md cursor-pointer"
-              >
-                <span className="text-xs font-sans font-bold text-yellow-400 font-display">PUNCH</span>
-                <span className="text-[9px] font-mono text-slate-400">Quick Punch</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  triggerVirtualAction('heavy');
-                  audio.playSelect();
-                }}
-                className="bg-white/5 hover:bg-white/10 border border-white/5 active:bg-orange-500 hover:border-orange-500/30 text-slate-100 p-3.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-md cursor-pointer"
-              >
-                <span className="text-xs font-sans font-bold text-orange-400 font-display">KICK</span>
-                <span className="text-[9px] font-mono text-slate-400">Heavy Kick</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  triggerVirtualAction('special');
-                  audio.playSelect();
-                }}
-                className="bg-white/5 hover:bg-white/10 border border-white/5 active:bg-cyan-500 hover:border-cyan-500/30 text-slate-100 p-3.5 rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
-              >
-                {playerPokemon.id === 'charizard' && <Flame className="w-4 h-4 text-orange-400" />}
-                {playerPokemon.id === 'blastoise' && <Waves className="w-4 h-4 text-cyan-400" />}
-                {playerPokemon.id === 'gengar' && <Skull className="w-4 h-4 text-purple-400" />}
-                {playerPokemon.id === 'pikachu' && <Zap className="w-4 h-4 text-yellow-400 animate-bounce" />}
-                {playerPokemon.id === 'lucario' && <Sparkles className="w-4 h-4 text-teal-400" />}
-                <span className="text-[9px] font-mono text-slate-450 uppercase font-bold text-center leading-tight">Projectile</span>
-              </button>
-
-              <button
-                disabled={p1Energy < 100}
-                onClick={() => {
-                  triggerVirtualAction('ultimate');
-                  audio.playSelect();
-                }}
-                className={`p-3.5 rounded-2xl flex flex-col items-center justify-center gap-1 transition-all shadow-md ${
-                  p1Energy >= 100
-                    ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 border border-amber-300 text-slate-950 font-black animate-pulse cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.4)]'
-                    : 'bg-slate-950/40 border border-white/5 text-slate-600 cursor-not-allowed'
-                }`}
-              >
-                <Trophy className={`w-4 h-4 ${p1Energy >= 100 ? 'text-slate-950' : 'text-slate-600'}`} />
-                <span className="text-xs font-display font-black">ULTIMATE</span>
+                <span className="text-[6px]">BLOCK</span>
+                <span className="text-[9px]">▼</span>
               </button>
             </div>
 
+            <button
+              onMouseDown={() => triggerVirtualAction('right')}
+              onTouchStart={(e) => { e.preventDefault(); triggerVirtualAction('right'); }}
+              onMouseUp={() => releaseVirtualAction('right')}
+              onMouseLeave={() => releaseVirtualAction('right')}
+              onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('right'); }}
+              className="w-10 h-10 sm:w-11 sm:h-11 bg-red-600/15 hover:bg-red-600/30 border border-red-500/20 active:bg-red-600 rounded-lg flex flex-col items-center justify-center text-slate-300 shadow active:text-white font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-transform active:scale-95"
+              title="Right (D)"
+            >
+              <span className="text-[12px] sm:text-sm">▶</span>
+              <span className="text-[6.5px]">D</span>
+            </button>
           </div>
-        </div>
 
+          {/* Core Tip HUD */}
+          <div className="hidden lg:flex flex-col text-center justify-center leading-normal max-w-xs">
+            <span className="text-[8px] font-mono font-black text-red-400 uppercase tracking-widest block mb-0.5">Quick Guide tip:</span>
+            <p className="text-[9.5px] font-sans text-slate-400 font-light">
+              Press <span className="text-yellow-400 font-bold">[S]</span> or <span className="text-yellow-400 font-bold">[BLOCK]</span> button to absorb 85% of incoming damages!
+            </p>
+          </div>
+
+          {/* 2. Attack Actions Buttons Cluster (PUNCH, KICK, PROJECTILE, ULTIMATE) */}
+          <div className="flex-1 grid grid-cols-4 gap-1 sm:gap-1.5 max-w-lg origin-right scale-90 sm:scale-100 pb-0.5">
+            <button
+              onClick={() => {
+                triggerVirtualAction('quick');
+                audio.playSelect();
+              }}
+              className="bg-red-600/10 hover:bg-red-600/20 border border-red-500/20 active:bg-red-650 text-slate-150 py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer shadow-md h-11 sm:h-13"
+            >
+              <span className="text-[10px] sm:text-xs font-sans font-black text-red-400">PUNCH</span>
+              <span className="text-[7.5px] font-mono text-slate-400 font-bold">[ J ]</span>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerVirtualAction('heavy');
+                audio.playSelect();
+              }}
+              className="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-slate-150 py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer shadow-md h-11 sm:h-13"
+            >
+              <span className="text-[10px] sm:text-xs font-sans font-black text-yellow-300 group-active:text-slate-950">KICK</span>
+              <span className="text-[7.5px] font-mono text-slate-400 font-bold">[ K ]</span>
+            </button>
+
+            <button
+              onClick={() => {
+                triggerVirtualAction('special');
+                audio.playSelect();
+              }}
+              className="bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/20 active:bg-cyan-500 hover:border-cyan-500/30 text-slate-100 py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer shadow-md h-11 sm:h-13"
+            >
+              <div className="flex items-center gap-0.5 scale-75 md:scale-90">
+                {playerPokemon.id === 'charizard' && <Flame className="w-3.5 h-3.5 text-orange-400" />}
+                {playerPokemon.id === 'blastoise' && <Waves className="w-3.5 h-3.5 text-cyan-400" />}
+                {playerPokemon.id === 'gengar' && <Skull className="w-3.5 h-3.5 text-purple-400" />}
+                {playerPokemon.id === 'pikachu' && <Zap className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />}
+                {playerPokemon.id === 'lucario' && <Sparkles className="w-3.5 h-3.5 text-teal-400" />}
+                {playerPokemon.id === 'greninja' && <Waves className="w-3.5 h-3.5 text-sky-400" />}
+                {playerPokemon.id === 'mewtwo' && <Sparkles className="w-3.5 h-3.5 text-purple-400" />}
+                {playerPokemon.id === 'snorlax' && <Star className="w-3.5 h-3.5 text-slate-400" />}
+              </div>
+              <span className="text-[7.5px] font-mono text-slate-450 uppercase font-black tracking-tighter">[ L ]</span>
+            </button>
+
+            <button
+              disabled={p1Energy < 100}
+              onClick={() => {
+                triggerVirtualAction('ultimate');
+                audio.playSelect();
+              }}
+              className={`py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition shadow-md h-11 sm:h-13 ${
+                p1Energy >= 100
+                  ? 'bg-gradient-to-r from-red-600 via-yellow-400 to-red-500 hover:from-red-700 hover:to-red-600 border border-yellow-300 text-slate-950 font-black animate-pulse cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95'
+                  : 'bg-slate-950/40 border border-white/5 text-slate-650 cursor-not-allowed'
+              }`}
+            >
+              <Trophy className={`w-3.5 h-3.5 ${p1Energy >= 100 ? 'text-slate-950' : 'text-slate-600'}`} />
+              <span className="text-[9px] sm:text-[10px] font-orbitron font-extrabold tracking-tighter leading-none">ULTI [ I ]</span>
+            </button>
+          </div>
+
+        </div>
       </div>
 
     </div>

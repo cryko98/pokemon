@@ -85,12 +85,15 @@ export function drawFighter(
     // Dynamic rotation angles based on state action values
     let angle = 0;
     if (state === 'attack_quick') {
-      angle = 0.12;
-      // lunge forward
-      ctx.translate(attackExt * 0.4, 0);
+      angle = 0.15;
+      // lunge forward sharply
+      ctx.translate(attackExt * 0.75, -2);
     } else if (state === 'attack_heavy') {
-      angle = 0.22;
-      ctx.translate(attackExt * 0.5, -5);
+      // Amazing dynamic backflip / high-kick spin rotation cycle!
+      const progress = Math.max(0, Math.min(1, (32 - stateTimer) / 32));
+      angle = -progress * Math.PI * 2;
+      // High-arc flight path
+      ctx.translate(attackExt * 0.55, -Math.sin(progress * Math.PI) * 26);
     } else if (state === 'ultimate') {
       angle = 0.32;
       ctx.translate(attackExt * 0.6, -10);
@@ -148,6 +151,54 @@ export function drawFighter(
       ctx.globalCompositeOperation = 'source-atop';
       ctx.fillStyle = 'rgba(239, 68, 68, 0.42)'; // soft alpha damage red mask
       ctx.fillRect(xPos, yPos, renderW, renderH);
+      ctx.restore();
+    }
+
+    // --- DISTINCT PUNCH AND KICK GLOWING EFFECT TRAILS DURING COMBAT ---
+    if (state === 'attack_quick') {
+      // Draw Punch / Jab high-speed yellow shockwave ring expanding outward
+      ctx.save();
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#FBBF24';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      const pCount = Math.max(0, Math.min(1, (18 - stateTimer) / 18));
+      ctx.ellipse(28, -2, 6 + pCount * 24, 12 + pCount * 14, 0, -Math.PI/2, Math.PI/2);
+      ctx.stroke();
+      
+      // Punch motion slash lines
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#FBBF24';
+      ctx.beginPath();
+      ctx.moveTo(30, -6); ctx.lineTo(62, -6);
+      ctx.moveTo(34, 6); ctx.lineTo(58, 6);
+      ctx.stroke();
+      ctx.restore();
+    } else if (state === 'attack_heavy') {
+      // Draw Heavy Kick spinning fire-orange-yellow crescent sweep trail
+      ctx.save();
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = '#EF4444';
+      
+      const gradient = ctx.createRadialGradient(0, 0, width * 0.5, 0, 0, width * 1.6);
+      gradient.addColorStop(0, 'rgba(239, 68, 68, 0.75)');
+      gradient.addColorStop(0.5, 'rgba(249, 115, 22, 0.5)');
+      gradient.addColorStop(1, 'rgba(253, 224, 71, 0)');
+      
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, width * 1.5, -0.4, 1.4);
+      ctx.lineTo(0, 0);
+      ctx.closePath();
+      ctx.fill();
+      
+      // High-intensity white-hot blade cutting edge line
+      ctx.strokeStyle = 'rgba(254, 240, 138, 0.9)';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, width * 1.35, -0.3, 1.3);
+      ctx.stroke();
       ctx.restore();
     }
 
@@ -270,9 +321,9 @@ export function drawFighter(
     // Arms
     ctx.fillStyle = pokemon.color;
     if (state === 'attack_quick' || state === 'ultimate') {
-      // Swing arm forward!
+      // Swing arm forward! (PUNCH)
       ctx.beginPath();
-      ctx.ellipse(15 + attackExt * 0.4, -4, 12, 6, Math.PI * 0.1, 0, Math.PI * 2);
+      ctx.ellipse(15 + attackExt * 0.5, -4, 12, 6, Math.PI * 0.1, 0, Math.PI * 2);
       ctx.fill();
     } else {
       // Slanted cute paws
@@ -285,8 +336,14 @@ export function drawFighter(
     // Feet
     ctx.fillStyle = pokemon.color;
     ctx.beginPath();
-    ctx.ellipse(10, 24 + breath, 8, 4, 0, 0, Math.PI * 2);
-    ctx.ellipse(-10, 24 + breath, 8, 4, 0, 0, Math.PI * 2);
+    if (state === 'attack_heavy') {
+      // Extend right foot forward as an awesome energetic sliding spark kick!
+      ctx.ellipse(10 + attackExt * 0.85, 20 + breath, 15, 6, -Math.PI * 0.15, 0, Math.PI * 2);
+      ctx.ellipse(-10, 24 + breath, 8, 4, 0, 0, Math.PI * 2);
+    } else {
+      ctx.ellipse(10, 24 + breath, 8, 4, 0, 0, Math.PI * 2);
+      ctx.ellipse(-10, 24 + breath, 8, 4, 0, 0, Math.PI * 2);
+    }
     ctx.fill();
 
     // Electric dynamic overlay if in ultimate or special charging
@@ -371,14 +428,14 @@ export function drawFighter(
 
     // Claws/Arm
     ctx.fillStyle = pokemon.color;
-    if (state === 'attack_quick' || state === 'attack_heavy') {
+    if (state === 'attack_quick' || state === 'ultimate') {
       ctx.beginPath();
-      ctx.ellipse(22 + attackExt * 0.4, -10, 16, 8, Math.PI * 0.1, 0, Math.PI * 2);
+      ctx.ellipse(22 + attackExt * 0.5, -10, 16, 8, Math.PI * 0.1, 0, Math.PI * 2);
       ctx.fill();
       // White claws
       ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();
-      ctx.arc(36 + attackExt * 0.4, -9, 3, 0, Math.PI * 2);
+      ctx.arc(36 + attackExt * 0.5, -9, 3, 0, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.beginPath();
@@ -389,8 +446,14 @@ export function drawFighter(
     // Legs
     ctx.fillStyle = pokemon.color;
     ctx.beginPath();
-    ctx.ellipse(12, 26 + breath * 0.5, 14, 8, Math.PI * 0.1, 0, Math.PI * 2);
-    ctx.ellipse(-12, 26 + breath * 0.5, 14, 8, -Math.PI * 0.1, 0, Math.PI * 2);
+    if (state === 'attack_heavy') {
+      // Heavy forward tailing stomp/kick!
+      ctx.ellipse(12 + attackExt * 0.8, 20 + breath * 0.5, 18, 10, -Math.PI * 0.2, 0, Math.PI * 2);
+      ctx.ellipse(-12, 26 + breath * 0.5, 14, 8, -Math.PI * 0.1, 0, Math.PI * 2);
+    } else {
+      ctx.ellipse(12, 26 + breath * 0.5, 14, 8, Math.PI * 0.1, 0, Math.PI * 2);
+      ctx.ellipse(-12, 26 + breath * 0.5, 14, 8, -Math.PI * 0.1, 0, Math.PI * 2);
+    }
     ctx.fill();
 
     // Eyes
@@ -471,9 +534,9 @@ export function drawFighter(
 
     // Arms
     ctx.fillStyle = pokemon.color;
-    if (state === 'attack_quick' || state === 'attack_heavy') {
+    if (state === 'attack_quick' || state === 'ultimate') {
       ctx.beginPath();
-      ctx.ellipse(24 + attackExt * 0.3, -4, 16, 12, Math.PI * 0.15, 0, Math.PI * 2);
+      ctx.ellipse(24 + attackExt * 0.4, -4, 18, 10, Math.PI * 0.15, 0, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.beginPath();
@@ -483,8 +546,14 @@ export function drawFighter(
 
     // Heavy Feet
     ctx.fillStyle = pokemon.color;
-    ctx.fillRect(4, 26 + breath * 0.4, 15, 12);
-    ctx.fillRect(-18, 26 + breath * 0.4, 15, 12);
+    if (state === 'attack_heavy') {
+      // Thrust heavy back-kick foot forward!
+      ctx.fillRect(4 + attackExt * 0.8, 20 + breath * 0.4, 20, 14);
+      ctx.fillRect(-18, 26 + breath * 0.4, 15, 12);
+    } else {
+      ctx.fillRect(4, 26 + breath * 0.4, 15, 12);
+      ctx.fillRect(-18, 26 + breath * 0.4, 15, 12);
+    }
 
   } else if (pokemon.id === 'gengar') {
     // ---- GENGAR RENDERER ----
@@ -554,10 +623,10 @@ export function drawFighter(
 
     // Shadowy Floating Claws
     ctx.fillStyle = pokemon.color;
-    if (state === 'attack_quick' || state === 'attack_heavy') {
+    if (state === 'attack_quick' || state === 'ultimate') {
       // Thrust claws forward!
       ctx.beginPath();
-      ctx.arc(28 + attackExt * 0.5, 0, 10, 0, Math.PI * 2);
+      ctx.arc(28 + attackExt * 0.5, 0, 11, 0, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.beginPath();
@@ -567,9 +636,16 @@ export function drawFighter(
     }
 
     // Little feet
+    ctx.fillStyle = pokemon.color;
     ctx.beginPath();
-    ctx.ellipse(12, 26, 8, 5, 0, 0, Math.PI * 2);
-    ctx.ellipse(-12, 26, 8, 5, 0, 0, Math.PI * 2);
+    if (state === 'attack_heavy') {
+      // Floating slide kick extension shape!
+      ctx.ellipse(12 + attackExt * 0.85, 20, 13, 7, -Math.PI * 0.15, 0, Math.PI * 2);
+      ctx.ellipse(-12, 26, 8, 5, 0, 0, Math.PI * 2);
+    } else {
+      ctx.ellipse(12, 26, 8, 5, 0, 0, Math.PI * 2);
+      ctx.ellipse(-12, 26, 8, 5, 0, 0, Math.PI * 2);
+    }
     ctx.fill();
 
   } else if (pokemon.id === 'lucario') {
@@ -638,16 +714,16 @@ export function drawFighter(
 
     // Fighting Arms
     ctx.fillStyle = pokemon.color;
-    if (state === 'attack_quick' || state === 'attack_heavy' || state === 'ultimate') {
+    if (state === 'attack_quick' || state === 'ultimate') {
       ctx.beginPath();
-      ctx.ellipse(18 + attackExt * 0.4, -4, 14, 6, Math.PI * 0.05, 0, Math.PI * 2);
+      ctx.ellipse(18 + attackExt * 0.5, -4, 15, 7, Math.PI * 0.05, 0, Math.PI * 2);
       ctx.fill();
-      // Wrist spike
+      // Wrist spike forward
       ctx.fillStyle = '#E2E8F0';
       ctx.beginPath();
-      ctx.moveTo(25 + attackExt * 0.4, -6);
-      ctx.lineTo(31 + attackExt * 0.4, -4);
-      ctx.lineTo(25 + attackExt * 0.4, -2);
+      ctx.moveTo(25 + attackExt * 0.5, -6);
+      ctx.lineTo(31 + attackExt * 0.5, -4);
+      ctx.lineTo(25 + attackExt * 0.5, -2);
       ctx.fill();
     } else {
       // Boxing fighter arms guarded stance
@@ -663,8 +739,14 @@ export function drawFighter(
 
     // Legs
     ctx.fillStyle = '#1E293B';
-    ctx.fillRect(2, 22 + bounce * 0.5, 8, 14);
-    ctx.fillRect(-10, 22 + bounce * 0.5, 8, 14);
+    if (state === 'attack_heavy') {
+      // Lucario signature sliding straight kick!
+      ctx.fillRect(2 + attackExt * 0.85, 16 + bounce * 0.5, 14, 8);
+      ctx.fillRect(-10, 22 + bounce * 0.5, 8, 14);
+    } else {
+      ctx.fillRect(2, 22 + bounce * 0.5, 8, 14);
+      ctx.fillRect(-10, 22 + bounce * 0.5, 8, 14);
+    }
   }
 
   } // End of offline fallback else block

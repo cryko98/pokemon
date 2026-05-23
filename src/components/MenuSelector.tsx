@@ -37,51 +37,51 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
   };
 
   return (
-    <div className="w-full max-w-5xl px-4 py-6 flex flex-col gap-8 select-none">
+    <div className="w-full max-w-5xl px-4 py-4 flex flex-col gap-6 select-none animate-fade-in">
       
-      {/* EPIC GLOWING HERO INTRO BANNER TITLE */}
-      <div className="text-center flex flex-[#0b1220] flex-col items-center backdrop-blur-md bg-slate-950/40 border border-white/5 p-7 rounded-2xl shadow-2xl relative overflow-hidden">
+      {/* EPIC GLOWING HERO INTRO BANNER TITLE WITH POKÉMON COLOUR PALETTE (RED/YELLOW/WHITE) */}
+      <div className="text-center flex flex-col items-center backdrop-blur-md bg-slate-950/70 border-2 border-red-500/20 p-6 rounded-3xl shadow-2xl relative overflow-hidden">
         {/* Glow corner highlights */}
-        <div className="absolute top-0 left-0 w-32 h-32 bg-amber-500/[0.04] blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/[0.04] blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute top-0 left-0 w-32 h-32 bg-red-500/[0.08] blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/[0.08] blur-3xl rounded-full pointer-events-none" />
         
         {/* Grid pattern aesthetic */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none opacity-40" />
 
-        <div className="relative z-10 select-none flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-400/10 text-yellow-400 text-[10px] md:text-sm font-bold px-4 py-1.5 rounded-full border border-yellow-500/20 mb-3.5 shadow-[0_0_15px_rgba(234,179,8,0.1)] uppercase tracking-widest font-mono">
-            <Sword className="w-3.5 h-3.5 text-yellow-500 animate-pulse" /> Pokémon Fighting Arena • $PokeFight Solana Special
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="inline-flex items-center gap-2 bg-red-600/10 text-red-400 text-[10px] md:text-xs font-bold px-4 py-1.5 rounded-full border border-red-500/20 mb-3 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.1)] uppercase tracking-widest font-mono">
+            <Sword className="w-3.5 h-3.5 text-red-500" /> STADIUM TOURNAMENT CHAMPIONSHIP
           </div>
           
-          <div className="flex items-center justify-center gap-5 my-1">
-            <PokeBall className="w-9 h-9 hidden md:block" type="classic" />
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500 drop-shadow-[0_2px_15px_rgba(234,179,8,0.35)] font-orbitron select-none py-1">
+          <div className="flex items-center justify-center gap-4 my-1">
+            <PokeBall className="w-8 h-8 hidden md:block" type="classic" />
+            <h1 className="text-3xl md:text-5xl lg:text-5.5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-white to-yellow-400 drop-shadow-[0_2px_12px_rgba(245,158,11,0.35)] font-orbitron select-none py-1">
               POKÉMON FIGHTING ARENA
             </h1>
-            <PokeBall className="w-9 h-9 hidden md:block" type="master" />
+            <PokeBall className="w-8 h-8 hidden md:block" type="ultra" />
           </div>
           
-          <p className="text-xs md:text-sm text-slate-300 max-w-xl mx-auto mt-2 leading-relaxed font-light">
+          <p className="text-xs md:text-sm text-slate-350 max-w-xl mx-auto mt-2 leading-relaxed font-light">
             Take command of your chosen fighter on the left and defeat the intelligent, dynamic computer-controlled opponent on the right in this classic 2D retro action fighting game!
           </p>
 
           {/* Dynamic Interactive Pokéball row for immersive brand feel */}
-          <div className="mt-5 flex items-center gap-6 justify-center bg-slate-950/40 p-3 rounded-2xl border border-white/5 shadow-inner">
+          <div className="mt-4.5 flex items-center gap-5 justify-center bg-slate-900/60 p-2.5 rounded-2xl border border-red-500/10 shadow-inner">
             <div className="flex flex-col items-center">
-              <PokeBall className="w-9 h-9" type="classic" />
-              <span className="text-[9px] font-mono text-slate-400 mt-1 uppercase font-bold">Poké Ball</span>
+              <PokeBall className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer" type="classic" />
+              <span className="text-[8px] font-mono text-slate-400 mt-1 uppercase font-black">Poké Ball</span>
             </div>
             <div className="flex flex-col items-center">
-              <PokeBall className="w-9 h-9" type="great" />
-              <span className="text-[9px] font-mono text-slate-400 mt-1 uppercase font-bold">Great Ball</span>
+              <PokeBall className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer" type="great" />
+              <span className="text-[8px] font-mono text-slate-400 mt-1 uppercase font-black">Great Ball</span>
             </div>
             <div className="flex flex-col items-center">
-              <PokeBall className="w-9 h-9" type="ultra" />
-              <span className="text-[9px] font-mono text-slate-400 mt-1 uppercase font-bold">Ultra Ball</span>
+              <PokeBall className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer" type="ultra" />
+              <span className="text-[8px] font-mono text-slate-400 mt-1 uppercase font-black">Ultra Ball</span>
             </div>
             <div className="flex flex-col items-center">
-              <PokeBall className="w-9 h-9" type="master" />
-              <span className="text-[9px] font-mono text-slate-400 mt-1 uppercase font-bold">Master Ball</span>
+              <PokeBall className="w-8 h-8 hover:scale-110 transition-transform cursor-pointer" type="master" />
+              <span className="text-[8px] font-mono text-slate-400 mt-1 uppercase font-black">Master Ball</span>
             </div>
           </div>
         </div>
@@ -94,16 +94,16 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* PLAYER 1 CHARACTER ACCORDION CARD */}
-            <div className="backdrop-blur-md bg-slate-900/20 border border-white/5 p-5 rounded-2xl shadow-xl flex flex-col justify-between gap-5">
+            {/* PLAYER 1 CHARACTER ACCORDION CARD (THEMED YELLOW/WHITE) */}
+            <div className="backdrop-blur-md bg-slate-950/40 border-t-4 border-t-yellow-400 border-x border-b border-white/5 p-5 rounded-2xl shadow-xl flex flex-col justify-between gap-5 transition-all hover:bg-slate-950/60">
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xs md:text-sm font-display font-black text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                  <h3 className="text-xs md:text-sm font-display font-black text-yellow-300 uppercase tracking-widest flex items-center gap-2">
                     <PokeBall className="w-5 h-5 flex-shrink-0" type="classic" /> PLAYER 1 (YOU)
                   </h3>
                 </div>
 
-                {/* Grid Choices */}
+                {/* Grid Choices - Custom spritted circles! */}
                 <div className="grid grid-cols-4 gap-1.5 mb-5">
                   {POKEMONS.map((poke) => {
                     const isSelected = selectedP1.id === poke.id;
@@ -111,20 +111,25 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
                       <button
                         key={poke.id}
                         onClick={() => selectP1Character(poke)}
-                        className={`p-1.5 rounded-lg border flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 ${
+                        className={`p-1.5 rounded-xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-300 group ${
                           isSelected
-                            ? 'bg-yellow-400/10 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.2)]'
-                            : 'bg-slate-950/40 border-white/5 hover:border-slate-800'
+                            ? 'bg-yellow-400/5 border-yellow-400 shadow-[0_0_12px_rgba(234,179,8,0.25)]'
+                            : 'bg-slate-950/80 border-white/5 hover:border-slate-800'
                         }`}
                         title={poke.name}
                       >
                         <div 
-                          className="w-7 h-7 rounded-full flex items-center justify-center font-display font-black text-slate-950 text-[10px] border border-white/10"
-                          style={{ backgroundColor: poke.color }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center border border-white/10 overflow-hidden shrink-0 relative p-1 bg-slate-900/60 transition-transform group-hover:scale-105"
+                          style={{ boxShadow: `0 0 8px ${poke.color}33`, background: `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}66 100%)` }}
                         >
-                          {poke.name[0]}
+                          <img 
+                            src={poke.imageUrl} 
+                            alt={poke.name} 
+                            className="w-8 h-8 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] select-none pointer-events-none" 
+                            referrerPolicy="no-referrer"
+                          />
                         </div>
-                        <span className="text-[8.5px] font-sans font-bold text-slate-300 truncate w-full text-center">{poke.name}</span>
+                        <span className="text-[8.5px] font-sans font-black text-slate-200 truncate w-full text-center">{poke.name}</span>
                       </button>
                     );
                   })}
@@ -137,16 +142,16 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
               </div>
             </div>
 
-            {/* CPU AI OPPONENT ACCORDION CARD */}
-            <div className="backdrop-blur-md bg-slate-900/20 border border-white/5 p-5 rounded-2xl shadow-xl flex flex-col justify-between gap-5">
+            {/* CPU AI OPPONENT ACCORDION CARD (THEMED RED/WHITE) */}
+            <div className="backdrop-blur-md bg-slate-950/40 border-t-4 border-t-red-500 border-x border-b border-white/5 p-5 rounded-2xl shadow-xl flex flex-col justify-between gap-5 transition-all hover:bg-slate-950/60">
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xs md:text-sm font-display font-black text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                  <h3 className="text-xs md:text-sm font-display font-black text-red-400 uppercase tracking-widest flex items-center gap-2">
                     <PokeBall className="w-5 h-5 flex-shrink-0" type="ultra" /> CPU AI OPPONENT
                   </h3>
                 </div>
 
-                {/* Grid Choices */}
+                {/* Grid Choices - Custom spritted circles! */}
                 <div className="grid grid-cols-4 gap-1.5 mb-5">
                   {POKEMONS.map((poke) => {
                     const isSelected = selectedCpu.id === poke.id;
@@ -155,22 +160,27 @@ export default function MenuSelector({ onStartFight }: MenuSelectorProps) {
                       <button
                         key={poke.id}
                         onClick={() => selectCpuCharacter(poke)}
-                        className={`p-1.5 rounded-lg border flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 relative ${
+                        className={`p-1.5 rounded-xl border flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-300 relative group ${
                           isSelected
-                            ? 'bg-rose-500/10 border-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.15)]'
-                            : 'bg-slate-950/40 border-white/5 hover:border-slate-800'
+                            ? 'bg-rose-500/5 border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.25)]'
+                            : 'bg-slate-950/80 border-white/5 hover:border-slate-800'
                         }`}
                         title={poke.name}
                       >
                         <div 
-                          className="w-7 h-7 rounded-full flex items-center justify-center font-display font-black text-slate-950 text-[10px] border border-white/10"
-                          style={{ backgroundColor: poke.color }}
+                          className="w-10 h-10 rounded-full flex items-center justify-center border border-white/10 overflow-hidden shrink-0 relative p-1 bg-slate-900/60 transition-transform group-hover:scale-105"
+                          style={{ boxShadow: `0 0 8px ${poke.color}33`, background: `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}66 100%)` }}
                         >
-                          {poke.name[0]}
+                          <img 
+                            src={poke.imageUrl} 
+                            alt={poke.name} 
+                            className="w-8 h-8 object-contain filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] select-none pointer-events-none" 
+                            referrerPolicy="no-referrer"
+                          />
                         </div>
-                        <span className="text-[8.5px] font-sans font-bold text-slate-300 truncate w-full text-center">{poke.name}</span>
+                        <span className="text-[8.5px] font-sans font-black text-slate-200 truncate w-full text-center">{poke.name}</span>
                         {isSame && (
-                          <span className="absolute -top-1 right-0 text-[6px] bg-slate-900 border border-white/10 text-amber-400 px-1 font-bold rounded scale-90">CLONE</span>
+                          <span className="absolute -top-1.5 right-0.5 text-[5.5px] font-mono bg-red-600 border border-red-400 text-white px-1.5 font-bold rounded-full scale-90 shadow-md">CLONE</span>
                         )}
                       </button>
                     );
