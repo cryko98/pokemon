@@ -1,0 +1,6 @@
+{
+  "name": "Pokémon Fighting Arena",
+  "description": "A beautiful 2D retro action fighting game featuring 5 iconic Pokémon with unique stats and signature trading card layouts. Battle against a smart computer-controlled opponent in dynamic themed arenas!",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
