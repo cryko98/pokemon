@@ -1088,7 +1088,7 @@ export default function GameController({
 
 
   return (
-    <div className="flex flex-col justify-between w-full h-[88dvh] sm:h-[91dvh] max-w-5xl px-1 sm:px-2 py-1 select-none overflow-hidden gap-1.5 sm:gap-2">
+    <div className="flex flex-col justify-between w-full h-full max-h-full max-w-5xl px-1 sm:px-2 py-1 select-none overflow-hidden gap-1 sm:gap-2 flex-1">
       
       {/* HEADER CONTROL BAR WITH LEAGUE STATS - REPOSITIONED AND COMPACTED */}
       <div className="flex items-center justify-between w-full backdrop-blur-md bg-slate-950/70 border border-red-500/10 py-1.5 px-3 rounded-xl gap-2 shadow-lg z-10 shrink-0">

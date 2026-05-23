@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { POKEMONS } from '../data';
+import { POKEMONS, BOOSTER_SECRET_POKEMONS } from '../data';
 import { PokemonCharacter } from '../types';
 import { audio } from '../utils/audio';
 import PokemonCard from './PokemonCard';
 import PokeBall from './PokeBall';
 import { Sparkles, RefreshCw, Landmark, ShieldCheck, X, Award, Zap } from 'lucide-react';
+
+const BOOSTER_POOL = [...POKEMONS, ...BOOSTER_SECRET_POKEMONS];
 
 interface BoosterPackProps {
   onClose: () => void;
@@ -45,9 +47,9 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
       setShaking(false);
       audio.playWin(); // Glorious victory fanfare sound!
       
-      // Randomly choose a Pokemon
-      const randomIndex = Math.floor(Math.random() * POKEMONS.length);
-      const chosen = POKEMONS[randomIndex];
+      // Randomly choose a Pokemon from the enriched booster pool (standard + secret exclusives!)
+      const randomIndex = Math.floor(Math.random() * BOOSTER_POOL.length);
+      const chosen = BOOSTER_POOL[randomIndex];
       setRevealedPokemon(chosen);
       setStep('revealed');
 
@@ -228,14 +230,22 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
           <div className="flex flex-col items-center animate-fade-in w-full">
             
             <div className="text-center mb-4.5">
-              <span className="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 text-[10px] font-mono font-black border border-green-500/20 px-3.5 py-1 rounded-full uppercase tracking-widest mb-2 animate-bounce">
-                <Sparkles className="w-3 h-3 text-yellow-400 animate-spin" /> UNLOCKED HOLOGRAPHIC!
-              </span>
-              <h2 className="text-3xl font-orbitron font-black text-white italic tracking-tight uppercase">
+              {revealedPokemon.isSecret ? (
+                <span className="inline-flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 text-[10px] font-mono font-black border border-yellow-400 px-3.5 py-1 rounded-full uppercase tracking-widest mb-2 animate-bounce shadow-[0_0_15px_rgba(234,179,8,0.4)]">
+                  <Sparkles className="w-3 h-3 text-yellow-400 animate-spin" /> SECRET LEAGUE RARE!
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 text-[10px] font-mono font-black border border-green-500/20 px-3.5 py-1 rounded-full uppercase tracking-widest mb-2 animate-bounce">
+                  <Sparkles className="w-3 h-3 text-yellow-400 animate-spin" /> UNLOCKED HOLOGRAPHIC!
+                </span>
+              )}
+              <h2 className={`text-3xl font-orbitron font-black text-white italic tracking-tight uppercase ${revealedPokemon.isSecret ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-red-400 drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)]' : ''}`}>
                 {revealedPokemon.name} ACQUIRED!
               </h2>
               <p className="text-[11px] font-sans text-slate-400 max-w-sm mx-auto leading-relaxed">
-                You have drawn a rare card! Proceed to stadium fight directly, or try your luck again by ripping another legendary package!
+                {revealedPokemon.isSecret 
+                  ? "Unbelievable! You've uncovered an ultra-rare Booster-Exclusive Secret Legend! Test their divine power in stadium combat!"
+                  : "You have drawn a powerful fighter! Proceed to stadium fight directly, or try your luck again by ripping another package!"}
               </p>
             </div>
 
@@ -244,7 +254,7 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
               
               {/* Orbiting visual glows */}
               <div className="absolute inset-0 flex justify-center items-center pointer-events-none -z-10 animate-spin duration-15000">
-                <div className="w-56 h-76 rounded-xl border border-dashed border-red-500/20 scale-110" />
+                <div className={`w-56 h-76 rounded-xl border border-dashed scale-110 ${revealedPokemon.isSecret ? 'border-yellow-400/40 shadow-[0_0_35px_rgba(234,179,8,0.25)]' : 'border-red-500/20'}`} />
               </div>
 
               {/* Sparkle effects radiating */}
@@ -256,7 +266,13 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
               </div>
 
               {/* The Pokemon trading card component */}
-              <PokemonCard pokemon={revealedPokemon} label="CHOSEN WARRIOR" badgeColor="bg-yellow-400 text-slate-950 font-black animate-pulse border-yellow-500" />
+              <PokemonCard 
+                pokemon={revealedPokemon} 
+                label={revealedPokemon.isSecret ? "SECRET LEGEND" : "CHOSEN WARRIOR"} 
+                badgeColor={revealedPokemon.isSecret 
+                  ? "bg-gradient-to-r from-yellow-400 via-amber-500 to-red-500 text-slate-950 font-black animate-pulse border-yellow-300 shadow-[0_0_12px_rgba(243,156,18,0.6)]" 
+                  : "bg-yellow-400 text-slate-950 font-black animate-pulse border-yellow-500"} 
+              />
             </div>
 
             {/* Accept / Re-roll Booster Action Hub grid */}

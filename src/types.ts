@@ -27,6 +27,8 @@ export interface PokemonCharacter {
   };
   description: string;
   descriptionHu: string;
+  nativelyFacesRight?: boolean;
+  isSecret?: boolean;
 }
 
 export type FigtherState =

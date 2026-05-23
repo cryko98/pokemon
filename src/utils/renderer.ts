@@ -138,16 +138,20 @@ export function drawFighter(
     const xPos = -renderW / 2;
     const yPos = -renderH / 2 + 5;
 
-    // Draw high-res PokeAPI image asset (flipped horizontally to correct PokeAPI's left-facing sprites)
+    // Draw high-res PokeAPI image asset (flipped horizontally to correct PokeAPI's left-facing sprites if needed)
     ctx.save();
-    ctx.scale(-1, 1);
+    if (!pokemon.nativelyFacesRight) {
+      ctx.scale(-1, 1);
+    }
     ctx.drawImage(imgElement, xPos, yPos, renderW, renderH);
     ctx.restore();
 
     // Crimson flashing overlay when taking hits
     if (state === 'hit') {
       ctx.save();
-      ctx.scale(-1, 1);
+      if (!pokemon.nativelyFacesRight) {
+        ctx.scale(-1, 1);
+      }
       ctx.globalCompositeOperation = 'source-atop';
       ctx.fillStyle = 'rgba(239, 68, 68, 0.42)'; // soft alpha damage red mask
       ctx.fillRect(xPos, yPos, renderW, renderH);
