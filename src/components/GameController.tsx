@@ -260,7 +260,10 @@ export default function GameController({
       
       // Calculate blocking status of victim
       const isDefBlocked = defender.isBlocking && defender.dir !== attacker.dir; 
-      let finalDamage = Math.round(move.damage * (1 + (pokeData.attack - 15) * 0.015));
+      
+      // RPG defense rating multiplier (higher defense reduces incoming damage exponentially)
+      const defenseMultiplier = 30 / (30 + defenderPoke.defense);
+      let finalDamage = Math.round(move.damage * (1 + (pokeData.attack - 15) * 0.015) * defenseMultiplier);
       
       // Pikachu Spark Passive: 20% extra damage if defender is hit
       if (pokeData.id === 'pikachu' && Math.random() < 0.2) {
@@ -293,7 +296,9 @@ export default function GameController({
       }
 
       if (isDefBlocked) {
-        finalDamage = Math.round(finalDamage * 0.15); // block absorbs 85% damage!
+        // High-defense characters block with higher shield efficiency! e.g. 10 defense absorbs 82%, 25 defense absorbs 88%
+        const blockDmgPct = 0.22 - (defenderPoke.defense * 0.004);
+        finalDamage = Math.round(finalDamage * blockDmgPct);
       }
 
       // Check for Gengar's Dream Eater ultimate lifesteal! (and shadow lifesteal passive on regular hits too)
@@ -1155,9 +1160,15 @@ export default function GameController({
         if (distanceVectorX < (target.width / 2 + proj.radius) && distanceVectorY < (target.height / 2 + proj.radius)) {
           // HIT!
           const isTargetBlocked = target.isBlocking && target.dir !== (proj.vx > 0 ? -1 : 1);
-          let finalDmg = proj.damage;
+          
+          // Apply target defense rating multiplier to reduce incoming projectile damage
+          const targetDefenseMultiplier = 30 / (30 + targetData.defense);
+          let finalDmg = Math.round(proj.damage * targetDefenseMultiplier);
+          
           if (isTargetBlocked) {
-            finalDmg = Math.round(finalDmg * 0.15); // absorb damage
+            // Apply customized defense block absorption scale based on their defense stat
+            const blockDmgPct = 0.22 - (targetData.defense * 0.004);
+            finalDmg = Math.round(finalDmg * blockDmgPct);
           }
 
           // Damage target
@@ -1658,7 +1669,7 @@ export default function GameController({
           <div className="hidden lg:flex flex-col text-center justify-center leading-normal max-w-xs">
             <span className="text-[8px] font-mono font-black text-rose-400 uppercase tracking-widest block mb-0.5">Quick Guide tip:</span>
             <p className="text-[9.5px] font-sans text-slate-400 font-light">
-              Press <span className="text-yellow-400 font-bold">[S]</span> or <span className="text-yellow-400 font-bold">[BLOCK]</span> button to absorb 85% of incoming damages!
+              Press <span className="text-yellow-400 font-bold">[S]</span> or <span className="text-yellow-400 font-bold">[BLOCK]</span> to absorb incoming damages proportional to your defense stat!
             </p>
           </div>
 
