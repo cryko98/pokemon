@@ -1,13 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Fredoka:wght@400;550;700&family=Press+Start+2P&family=Orbitron:wght@600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@450;550;650;750&family=JetBrains+Mono:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&family=Orbitron:wght@600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Fredoka", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
   --font-orbitron: "Orbitron", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
-  --font-cartoon: "Luckiest Guy", cursive;
-  --font-retro: "Press Start 2P", monospace;
+  --font-cartoon: "Space Grotesk", sans-serif; /* Upgrade children font placeholder to sleek Space Grotesk! */
+  --font-retro: "JetBrains Mono", monospace;
 }
 
 html,
@@ -16,67 +16,90 @@ body,
   min-height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #f0f9ff;
+  background-color: #030712;
+  /* Ultra-sleek technical fine grid in absolute dark space */
   background-image: 
-    radial-gradient(#bae6fd 2px, transparent 2px), 
-    radial-gradient(#bae6fd 2px, #f0f9ff 2px);
-  background-size: 32px 32px;
-  background-position: 0 0, 16px 16px;
+    linear-gradient(rgba(244, 244, 245, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244, 244, 245, 0.015) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: center center;
   overflow-x: hidden;
+  color: #f4f4f5;
 }
 
-/* Perfect Retro/Cartoon UI custom variables and utility rules */
+/* Glassmorphism glass panels replacing thick comic elements */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+}
+
+.glass-panel-glow {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.8), 0 0 25px 0 rgba(99, 102, 241, 0.05);
+}
+
+/* Sleek border shapes with responsive micro effects */
 .cartoon-border {
-  border: 4px solid #000000;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.cartoon-shadow-sm {
-  box-shadow: 2px 2px 0px #000000;
-}
-
-.cartoon-shadow {
-  box-shadow: 4px 4px 0px #000000;
-}
-
+.cartoon-shadow-sm,
+.cartoon-shadow,
 .cartoon-shadow-lg {
-  box-shadow: 8px 8px 0px #000000;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cartoon-shadow-xl {
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .cartoon-shadow-yellow {
-  box-shadow: 4px 4px 0px #EAB308;
+  box-shadow: 0 4px 20px -2px rgba(234, 179, 8, 0.15);
 }
 
+/* Micro-hover indicators */
 .cartoon-shadow-hover:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px #000000;
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px 0 rgba(234, 179, 8, 0.04);
 }
 
 .cartoon-shadow-hover:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px #000000;
+  transform: translateY(1px);
+  box-shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.5);
 }
 
-/* Pokéball-like details */
+/* Pokeball premium tech spinner */
 .pokeball-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #000;
+  width: 44px;
+  height: 44px;
+  border: 2px solid rgba(255,255,255,0.15);
   border-radius: 50%;
-  background: linear-gradient(to bottom, #ef4444 50%, #fff 50%);
+  background: linear-gradient(to bottom, #ef4444 50%, #1e293b 50%);
   position: relative;
-  animation: spin 1.2s linear infinite;
+  animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
 }
 
 .pokeball-spinner::after {
   content: '';
   position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 16px;
-  height: 16px;
+  top: 14px;
+  left: 14px;
+  width: 12px;
+  height: 12px;
   background: #fff;
-  border: 4px solid #000;
+  border: 2px solid #0f172a;
   border-radius: 50%;
+  box-shadow: 0 0 5px rgba(255,255,255,0.8);
 }
 
 @keyframes spin {
@@ -84,16 +107,31 @@ body,
   100% { transform: rotate(360deg); }
 }
 
-/* Simple scanlines layout overlay for a classic gameboy color arcade look */
+/* Horizontal scanlines visual overlay for immersive terminal vibe */
 .scanlines {
   background: linear-gradient(
-    rgba(18, 24, 38, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
+    rgba(15, 23, 42, 0) 50%, 
+    rgba(0, 0, 0, 0.35) 50%
   );
-  background-size: 100% 4px, 6px 100%;
+  background-size: 100% 4px;
+  pointer-events: none;
+}
+
+/* Customized glowing scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }

@@ -3,28 +3,28 @@ import { POKEMONS, BOOSTER_SECRET_POKEMONS, ARENAS } from '../data';
 import { PokemonCharacter, Arena } from '../types';
 import { audio } from '../utils/audio';
 import PokemonCard from './PokemonCard';
-import { Sword, Play, AlertTriangle, BookOpen, Layers, Users, Shield, Sparkles, Trophy, Globe, Lock, Search } from 'lucide-react';
+import { Sword, Play, AlertTriangle, BookOpen, Layers, Shield, Sparkles, Trophy, Lock, Search } from 'lucide-react';
 import PokeBall from './PokeBall';
 import BoosterPack from './BoosterPack';
-import { io, Socket } from 'socket.io-client';
+import CareerMode from './CareerMode';
 
 interface MenuSelectorProps {
   onStartFight: (playerPokemon: PokemonCharacter, cpuPokemon: PokemonCharacter, selectedArena: Arena) => void;
-  onStartMultiplayerFight?: (
-    player: PokemonCharacter,
-    cpu: PokemonCharacter,
+  onStartCareerFight: (
+    playerPokemon: PokemonCharacter,
+    cpuPokemon: PokemonCharacter,
     arena: Arena,
-    roomId: string,
-    side: 'player' | 'cpu',
-    socket: any
+    stageLevel: number,
+    statMultiplier: number
   ) => void;
+  savedProfilesUpdatedTrigger?: number;
 }
 
-type MenuTab = 'bot' | 'multiplayer' | 'album' | 'abilities';
+type MenuTab = 'career' | 'bot' | 'album' | 'abilities';
 
-export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: MenuSelectorProps) {
-  // Navigation tabs
-  const [activeTab, setActiveTab] = useState<MenuTab>('bot');
+export default function MenuSelector({ onStartFight, onStartCareerFight, savedProfilesUpdatedTrigger = 0 }: MenuSelectorProps) {
+  // Navigation tabs - default to campaign mode
+  const [activeTab, setActiveTab] = useState<MenuTab>('career');
 
   // local VS AI Selectors
   const [selectedP1, setSelectedP1] = useState<PokemonCharacter>(POKEMONS[0]);
@@ -38,26 +38,6 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
   // Card Album detailed selection state
   const [albumSelected, setAlbumSelected] = useState<PokemonCharacter>(POKEMONS[0]);
 
-  // Online Multiplayer state declarations
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [roomIdInput, setRoomIdInput] = useState<string>('');
-  const [playerNameInput, setPlayerNameInput] = useState<string>('');
-  const [multiplayerStatus, setMultiplayerStatus] = useState<'idle' | 'connecting' | 'queue' | 'ready'>('idle');
-  const [isLobbyCreator, setIsLobbyCreator] = useState<boolean>(false);
-  const [multiplayerSide, setMultiplayerSide] = useState<'player' | 'cpu'>('player');
-  const [connectedRoomId, setConnectedRoomId] = useState<string>('');
-  const [lobbyPlayers, setLobbyPlayers] = useState<{ [idStr: string]: { name: string; pokemonId: string; idStr: string } }>({});
-  const [multiplayerWarning, setMultiplayerWarning] = useState<string | null>(null);
-  const [matchmakingServerUrl, setMatchmakingServerUrl] = useState<string>(() => {
-    const origin = window.location.origin;
-    // If it's localhost or run.app (Cloud Run), use the current webpage origin as the backend server.
-    // Otherwise, assume it's hosted elsewhere (like Vercel) and point it to our persistent Cloud Run backend.
-    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('run.app')) {
-      return origin;
-    }
-    return 'https://ais-pre-6irlnwsyo6ctuby4gzpwh7-144972049865.europe-west2.run.app';
-  });
-
   // Read unlocked secrets on initial mount and when booster is closed
   const reloadSecrets = () => {
     try {
@@ -70,24 +50,7 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
 
   useEffect(() => {
     reloadSecrets();
-    
-    // Generate an automatic random Room Code
-    const randomCode = Math.floor(1000 + Math.random() * 9000);
-    setRoomIdInput(`ARENA-${randomCode}`);
-    
-    // Prefill default random player name
-    const randomNameCode = Math.floor(10 + Math.random() * 89);
-    setPlayerNameInput(`Trainer-${randomNameCode}`);
   }, []);
-
-  // Socket clean up on dismount
-  useEffect(() => {
-    return () => {
-      if (socket) {
-        socket.disconnect();
-      }
-    };
-  }, [socket]);
 
   const handleTabChange = (tab: MenuTab) => {
     setActiveTab(tab);
@@ -114,250 +77,158 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
     audio.playSelect();
   };
 
-  // MULTIPLAYER ROOM JOIN FLOW
-  const joinOnlineRoom = () => {
-    if (!playerNameInput.trim()) {
-      setMultiplayerWarning('Please enter a player nickname!');
-      return;
-    }
-    if (!roomIdInput.trim()) {
-      setMultiplayerWarning('Please enter a room code!');
-      return;
-    }
-
-    setMultiplayerWarning(null);
-    setMultiplayerStatus('connecting');
-    audio.playSelect();
-
-    // Initialize connection to local Server (supporting smart fallback for serverless hosting like Vercel)
-    const socketInstance = io(matchmakingServerUrl, {
-      reconnectionAttempts: 4,
-      timeout: 10000,
-      withCredentials: true,
-      transports: ['polling', 'websocket']
-    });
-
-    setSocket(socketInstance);
-
-    socketInstance.on('connect', () => {
-      socketInstance.emit('join_room', {
-        roomId: roomIdInput.trim().toUpperCase(),
-        name: playerNameInput.trim(),
-        pokemonId: selectedP1.id
-      });
-    });
-
-    socketInstance.on('joined_room_info', ({ roomId, side, players }) => {
-      setConnectedRoomId(roomId);
-      setMultiplayerSide(side);
-      setLobbyPlayers(players);
-      setIsLobbyCreator(side === 'player');
-      setMultiplayerStatus('queue');
-    });
-
-    socketInstance.on('room_info_update', ({ players }) => {
-      setLobbyPlayers(players);
-    });
-
-    socketInstance.on('room_full', ({ message }) => {
-      setMultiplayerWarning(message);
-      setMultiplayerStatus('idle');
-      socketInstance.disconnect();
-    });
-
-    // Both players connected - start matches!
-    socketInstance.on('match_ready', ({ p1, p2 }) => {
-      setMultiplayerStatus('ready');
-      audio.playBattleStart();
-
-      // Find actual Pokemon objects from full pool matching ids
-      const fullPool = [...POKEMONS, ...BOOSTER_SECRET_POKEMONS];
-      const p1Obj = fullPool.find(p => p.id === p1.pokemonId) || POKEMONS[0];
-      const p2Obj = fullPool.find(p => p.id === p2.pokemonId) || POKEMONS[1];
-
-      // Initiate combat
-      if (onStartMultiplayerFight) {
-        onStartMultiplayerFight(
-          p1Obj,
-          p2Obj,
-          selectedArena,
-          roomIdInput.trim().toUpperCase(),
-          multiplayerSide,
-          socketInstance
-        );
-      }
-    });
-
-    socketInstance.on('player_disconnected', ({ message }) => {
-      setMultiplayerWarning(message);
-      setMultiplayerStatus('idle');
-      setSocket(null);
-    });
-
-    socketInstance.on('connect_error', () => {
-      setMultiplayerWarning('Connection to the matchmaking hub failed. Please check your network!');
-      setMultiplayerStatus('idle');
-    });
-  };
-
-  const leaveMultiplayerLobby = () => {
-    if (socket) {
-      socket.emit('leave_room', { roomId: connectedRoomId });
-      socket.disconnect();
-    }
-    setSocket(null);
-    setMultiplayerStatus('idle');
-    audio.playSelect();
-  };
-
   const allAlbumPokemons = [...POKEMONS, ...BOOSTER_SECRET_POKEMONS];
 
   return (
-    <div className="w-full max-w-5xl px-2 sm:px-4 py-3 flex flex-col gap-5 select-none animate-fade-in text-slate-900">
+    <div className="w-full max-w-5xl px-2 sm:px-4 py-3 flex flex-col gap-6 select-none animate-fade-in text-slate-100">
       
-      {/* GLOWING HERO INTRO BANNER TITLE WITH CARTOON POKEMON STYLE */}
-      <div className="flex flex-col bg-white border-4 border-black cartoon-shadow-lg rounded-3xl relative overflow-hidden">
-        {/* FULL BOUNDING FRAME BANNER WITH THE GIVEN IMAGE */}
-        <div className="w-full relative overflow-hidden bg-sky-150 border-b-4 border-black h-48 sm:h-64 md:h-80 flex items-center justify-center p-3">
-          <div className="absolute inset-0 bg-cover bg-center opacity-30 filter blur-sm" style={{ backgroundImage: "url('https://berjrozgwqoqpeqozceu.supabase.co/storage/v1/object/public/werld/poke.png')" }} />
+      {/* INTRO BANNER TITLE WITH CARTOON POKEMON STYLE */}
+      <div className="flex flex-col glass-panel-glow rounded-[28px] relative overflow-hidden">
+        {/* COVER LANDSCAPE ART - WITH DARK GRADIENT OVERLAY */}
+        <div className="w-full relative overflow-hidden bg-slate-950 border-b border-white/5 h-48 sm:h-60 md:h-72 flex items-center justify-center p-3">
+          <div className="absolute inset-0 bg-cover bg-center opacity-25 filter blur-xs" style={{ backgroundImage: "url('https://berjrozgwqoqpeqozceu.supabase.co/storage/v1/object/public/werld/poke.png')" }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
           <img 
             src="https://berjrozgwqoqpeqozceu.supabase.co/storage/v1/object/public/werld/poke.png" 
-            className="relative z-10 max-w-full max-h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.25)] transform hover:scale-[1.03] transition-transform duration-350" 
-            alt="Pokémon Cartoon Cast"
+            className="relative z-10 max-w-full max-h-[85%] object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.5)] transform hover:scale-[1.02] transition-transform duration-500" 
+            alt="Pokémon Cast"
             referrerPolicy="no-referrer"
           />
         </div>
 
-        <div className="text-center flex flex-col items-center p-5 sm:p-6 relative">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-red-500/[0.08] blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/[0.08] blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000005_2px,transparent_2px),linear-gradient(to_bottom,#00000005_2px,transparent_2px)] bg-[size:20px_20px] pointer-events-none opacity-40" />
+        <div className="text-center flex flex-col items-center p-5 sm:p-7 relative bg-slate-950/70 backdrop-blur-md">
+          <div className="absolute top-0 left-0 w-36 h-36 bg-red-500/[0.04] blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute top-0 right-0 w-36 h-36 bg-yellow-405/[0.04] blur-3xl rounded-full pointer-events-none" />
 
           <div className="relative z-10 flex flex-col items-center w-full">
-            <div className="inline-flex items-center gap-1.5 bg-[#ef4444] border-2 border-black text-white text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-full cartoon-shadow-sm mb-3.5 uppercase tracking-wider font-mono">
-              <Sword className="w-3.5 h-3.5 text-white animate-pulse" /> STADIUM FIGHTING LEAGUE 2026
+            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-500/10 to-transparent border border-red-500/20 text-red-400 text-[10px] sm:text-xs font-mono font-bold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider">
+              <Sword className="w-3.5 h-3.5 text-red-500 animate-pulse" /> CHAMPIONS COLISEUM 2026
             </div>
             
             <div className="flex items-center justify-center gap-3.5 my-1">
               <PokeBall className="w-8 h-8 hidden sm:block filter drop-shadow animate-bounce" type="classic" />
-              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-yellow-400 font-cartoon drop-shadow-[4px_4px_0_#000] tracking-normal select-none py-1 transform -rotate-1">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-100 to-slate-350 tracking-tight select-none py-1 uppercase">
                 POKÉMON ARENA FIGHTER
               </h1>
               <PokeBall className="w-8 h-8 hidden sm:block filter drop-shadow animate-bounce" type="ultra" />
             </div>
           
-          <p className="text-xs sm:text-sm text-slate-800 max-w-xl mx-auto leading-relaxed font-semibold mt-2">
-            Control your legendary Pokémon in real-time in the ultimate battle coliseum! Rip randomized Mystery Packs to discover mythical deities, or challenge dual opponents online!
-          </p>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto leading-relaxed mt-3 font-normal">
+              Lead your favorite pocket monsters to victory in real-time stadium duels! Crack open foil booster packs to claim legendary fighters, or upgrade your custom profile stats in the local Campaign Mode!
+            </p>
 
-          {/* CARTOON STYLED NAVIGATION TAB MENU */}
-          <nav className="flex items-center gap-1.5 sm:gap-2.5 mt-6 p-2 bg-slate-900 border-4 border-black rounded-3xl w-full max-w-xl shadow-xl">
-            <button
-              onClick={() => handleTabChange('bot')}
-              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
-                activeTab === 'bot'
-                  ? 'bg-yellow-400 text-slate-950 border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Sword className="w-4 h-4" /> VS BOT
-            </button>
-            <button
-              onClick={() => handleTabChange('multiplayer')}
-              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase relative ${
-                activeTab === 'multiplayer'
-                  ? 'bg-red-500 text-white border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Globe className="w-4 h-4" /> ONLINE PVP
-              <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-black"></span>
-              </span>
-            </button>
-            <button
-              onClick={() => handleTabChange('album')}
-              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
-                activeTab === 'album'
-                  ? 'bg-cyan-400 text-slate-950 border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" /> ALBUM
-            </button>
-            <button
-              onClick={() => handleTabChange('abilities')}
-              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
-                activeTab === 'abilities'
-                  ? 'bg-purple-500 text-white border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-300 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" /> PASSIVES
-            </button>
-          </nav>
+            {/* INTERACTIVE NAVIGATION CARTOON PANEL */}
+            <nav className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-6 p-1.5 bg-slate-950/80 border border-white/5 rounded-2xl w-full max-w-2xl shadow-2xl">
+              <button
+                onClick={() => handleTabChange('career')}
+                className={`flex-1 min-w-[120px] py-3 rounded-xl font-display font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer text-xs sm:text-sm uppercase tracking-wider ${
+                  activeTab === 'career'
+                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 font-extrabold shadow-[0_4px_16px_rgba(245,158,11,0.25)]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Trophy className="w-4 h-4" /> Campaign
+              </button>
+              <button
+                onClick={() => handleTabChange('bot')}
+                className={`flex-1 min-w-[120px] py-3 rounded-xl font-display font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer text-xs sm:text-sm uppercase tracking-wider ${
+                  activeTab === 'bot'
+                    ? 'bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950 font-extrabold shadow-[0_4px_16px_rgba(6,182,212,0.25)]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Sword className="w-4 h-4" /> BOT MATCH
+              </button>
+              <button
+                onClick={() => handleTabChange('album')}
+                className={`flex-1 min-w-[120px] py-3 rounded-xl font-display font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer text-xs sm:text-sm uppercase tracking-wider ${
+                  activeTab === 'album'
+                    ? 'bg-gradient-to-r from-emerald-400 to-teal-500 text-slate-950 font-extrabold shadow-[0_4px_16px_rgba(16,185,129,0.25)]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" /> COLLECTION
+              </button>
+              <button
+                onClick={() => handleTabChange('abilities')}
+                className={`flex-1 min-w-[120px] py-3 rounded-xl font-display font-bold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer text-xs sm:text-sm uppercase tracking-wider ${
+                  activeTab === 'abilities'
+                    ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white font-extrabold shadow-[0_4px_16px_rgba(168,85,247,0.25)]'
+                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" /> PASSIVES
+              </button>
+            </nav>
+          </div>
         </div>
       </div>
-    </div>
 
+      {/* CAREER SYSTEM TABLE */}
+      {activeTab === 'career' && (
+        <CareerMode 
+          onStartCareerFight={onStartCareerFight}
+          savedProfilesUpdatedTrigger={savedProfilesUpdatedTrigger}
+        />
+      )}
+
+      {/* BOT GAME TABLE */}
       {activeTab === 'bot' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-in">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-in text-slate-150">
           
-          {/* OFFLINE CHARACTER SELECTION SPLIT VIEWS */}
+          {/* OFFLINE CHARACTER SELECTIONS */}
           <div className="lg:col-span-8 flex flex-col gap-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               
-              {/* P1 SELECTOR */}
-              <div className="bg-white border-4 border-black cartoon-shadow p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-4">
+              {/* ALY 1 INDUCTE */}
+              <div className="glass-panel rounded-3xl p-5 flex flex-col justify-between gap-5 border border-white/5">
                 <div>
-                  <h3 className="text-sm font-cartoon text-slate-850 uppercase tracking-wide flex items-center justify-between mb-4">
-                    <span className="flex items-center gap-2 drop-shadow-[1px_1px_0_rgba(255,255,255,0.8)]">
-                      <PokeBall className="w-6 h-6 shrink-0" type="classic" /> PLAYER 1 (YOU)
+                  <h3 className="text-xs font-mono text-slate-400 uppercase tracking-widest flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+                    <span className="flex items-center gap-2 font-bold text-slate-200">
+                      <PokeBall className="w-5 h-5 shrink-0" type="classic" /> PLAYER 1 (YOU)
                     </span>
-                    <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">CHOOSE ALLY</span>
+                    <span className="text-[9px] font-mono text-slate-500 font-extrabold">ALLY CHOOSE</span>
                   </h3>
- 
+
                   <button
                     onClick={() => {
                       setBoosterPackActive(true);
                       audio.playSelect();
                     }}
-                    className="w-full mb-4 bg-gradient-to-r from-red-500 via-amber-400 to-yellow-300 hover:from-red-650 hover:to-yellow-500 text-slate-950 font-cartoon font-black text-xs tracking-wider py-3 px-4 rounded-xl flex items-center justify-center gap-1.5 border-2 border-black cartoon-shadow-sm cursor-pointer transition-all duration-300 uppercase animate-pulse"
+                    className="w-full mb-4 bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-950 font-display font-black text-xs tracking-wider py-3.5 px-4 rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-lg transition-all duration-300 uppercase animate-pulse"
                   >
-                    🎁 OPEN MYSTERY BOOSTER PACK!
+                    🎁 RIP OPEN MYSTERY BOOSTER PACK!
                   </button>
- 
-                  <div className="grid grid-cols-4 gap-1.5 mb-4">
+
+                  <div className="grid grid-cols-4 gap-1.5 mb-5 h-28 overflow-y-auto pr-1">
                     {POKEMONS.map((poke) => {
                       const isSelected = selectedP1.id === poke.id;
                       return (
                         <button
                           key={poke.id}
                           onClick={() => selectP1Character(poke)}
-                          className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 group ${
+                          className={`p-1 rounded-xl border flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 ${
                             isSelected
-                              ? 'bg-yellow-300 border-black cartoon-shadow-sm'
-                              : 'bg-slate-50 border-black hover:bg-slate-100'
+                              ? 'bg-slate-800 border-yellow-500/80 shadow-[0_0_12px_rgba(234,179,8,0.2)]'
+                              : 'bg-slate-950/40 border-white/5 hover:border-slate-700 hover:bg-slate-900/60'
                           }`}
                         >
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white transition-transform group-hover:scale-105"
-                            style={{ background: `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}55 100%)` }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10 overflow-hidden relative p-0.5 bg-slate-950"
                           >
                             <img 
                               src={poke.imageUrl} 
                               alt={poke.name} 
-                              className="w-8 h-8 object-contain filter drop-shadow hover:scale-110 duration-200 pointer-events-none" 
+                              className="w-7 h-7 object-contain filter drop-shadow pointer-events-none transition-transform duration-205 group-hover:scale-110" 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-slate-800 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[8px] font-mono font-bold text-slate-300 truncate w-full text-center uppercase tracking-wide">{poke.name}</span>
                         </button>
                       );
                     })}
- 
-                    {/* Unlocked secret boosters show in select array! */}
+
+                    {/* Unlocked special monsters catalog */}
                     {unlockedSecretIds.map(secId => {
                       const poke = BOOSTER_SECRET_POKEMONS.find(p => p.id === secId);
                       if (!poke) return null;
@@ -366,47 +237,46 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                         <button
                           key={poke.id}
                           onClick={() => selectP1Character(poke)}
-                          className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 relative group border-dashed ${
+                          className={`p-1 rounded-xl border flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 relative ${
                             isSelected
-                              ? 'bg-yellow-300 border-black cartoon-shadow-sm'
-                              : 'bg-slate-100 border-yellow-600/70 hover:border-yellow-500'
+                              ? 'bg-slate-800 border-yellow-500/80 shadow-[0_0_12px_rgba(234,179,8,0.2)]'
+                              : 'bg-slate-950/40 border-yellow-500/20 hover:border-yellow-500/50'
                           }`}
                         >
-                          <span className="absolute -top-1.5 -right-0.5 bg-yellow-400 border border-black text-slate-950 text-[6.5px] font-black font-mono px-1 rounded-full scale-75 shadow-md z-10 animate-pulse">RARE</span>
+                          <span className="absolute -top-1.5 -right-0.5 bg-yellow-400 text-slate-950 text-[6px] font-bold font-mono px-1 rounded-full scale-75 shadow-sm z-10">RARE</span>
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white"
-                            style={{ background: `radial-gradient(circle, #facc1522 0%, #facc1577 100%)` }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center border border-yellow-500/30 overflow-hidden relative p-0.5 bg-slate-950"
                           >
                             <img 
                               src={poke.imageUrl} 
                               alt={poke.name} 
-                              className="w-8 h-8 object-contain filter drop-shadow" 
+                              className="w-7 h-7 object-contain filter drop-shadow" 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-yellow-600 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[8px] font-mono font-bold text-yellow-500 truncate w-full text-center uppercase tracking-wide">{poke.name}</span>
                         </button>
                       );
                     })}
                   </div>
- 
+
                   <div className="w-full flex justify-center">
-                    <PokemonCard pokemon={selectedP1} label="YOUR HERO" badgeColor="bg-yellow-400 text-slate-950 border-2 border-black" />
+                    <PokemonCard pokemon={selectedP1} label="YOUR HERO" badgeColor="bg-yellow-400 text-slate-950 border border-yellow-500/20" />
                   </div>
                 </div>
               </div>
- 
-              {/* CPU SELECTOR */}
-              <div className="bg-white border-4 border-black cartoon-shadow p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-4">
+
+              {/* ENEMY CPU SELECTION */}
+              <div className="glass-panel rounded-3xl p-5 flex flex-col justify-between gap-5 border border-white/5">
                 <div>
-                  <h3 className="text-sm font-cartoon text-rose-500 uppercase tracking-wide flex items-center justify-between mb-4">
-                    <span className="flex items-center gap-2 drop-shadow-[1px_1px_0_rgba(255,255,255,0.8)]">
-                      <PokeBall className="w-6 h-6 shrink-0" type="ultra" /> OPPONENT NPC (BOT)
+                  <h3 className="text-xs font-mono text-slate-400 uppercase tracking-widest flex items-center justify-between mb-4 border-b border-white/5 pb-2">
+                    <span className="flex items-center gap-2 font-bold text-slate-200">
+                      <PokeBall className="w-5 h-5 shrink-0" type="ultra" /> COMPUTER OPPONENT (AI)
                     </span>
-                    <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">BOT FIGHTER</span>
+                    <span className="text-[9px] font-mono text-slate-500 font-extrabold">FOE CHOOSE</span>
                   </h3>
- 
-                  <div className="grid grid-cols-4 gap-1.5 mb-5 mt-10">
+
+                  <div className="grid grid-cols-4 gap-1.5 mb-5 mt-4 h-28 overflow-y-auto pr-1">
                     {POKEMONS.map((poke) => {
                       const isSelected = selectedCpu.id === poke.id;
                       const isSame = selectedP1.id === poke.id;
@@ -414,32 +284,31 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                         <button
                           key={poke.id}
                           onClick={() => selectCpuCharacter(poke)}
-                          className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 relative group ${
+                          className={`p-1 rounded-xl border flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 relative ${
                             isSelected
-                              ? 'bg-rose-400 text-white border-black cartoon-shadow-sm'
-                              : 'bg-slate-50 border-black hover:bg-slate-100'
+                              ? 'bg-slate-800 border-red-500/80 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                              : 'bg-slate-950/40 border-white/5 hover:border-slate-700 hover:bg-slate-900/60'
                           }`}
                         >
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white"
-                            style={{ background: `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}55 100%)` }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10 overflow-hidden relative p-0.5 bg-slate-950"
                           >
                             <img 
                               src={poke.imageUrl} 
                               alt={poke.name} 
-                              className="w-8 h-8 object-contain filter drop-shadow" 
+                              className="w-7 h-7 object-contain filter drop-shadow" 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-slate-800 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[8px] font-mono font-bold text-slate-300 truncate w-full text-center uppercase tracking-wide">{poke.name}</span>
                           {isSame && (
-                            <span className="absolute -top-1.5 -right-0.5 text-[6.5px] font-black font-mono bg-red-600 border border-black text-white px-1.5 py-0.2 rounded-full scale-90 shadow-md">CLONE</span>
+                            <span className="absolute -top-1.5 -right-0.5 text-[6px] font-bold font-mono bg-red-600 text-white px-1 rounded-full scale-75 shadow-sm">CLONE</span>
                           )}
                         </button>
                       );
                     })}
- 
-                    {/* Unlocked secrets can also be battled as AI! */}
+
+                    {/* Unlocked secret monsters as AI duels */}
                     {unlockedSecretIds.map(secId => {
                       const poke = BOOSTER_SECRET_POKEMONS.find(p => p.id === secId);
                       if (!poke) return null;
@@ -449,359 +318,130 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                         <button
                           key={poke.id}
                           onClick={() => selectCpuCharacter(poke)}
-                          className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 border-dashed relative group ${
+                          className={`p-1 rounded-xl border flex flex-col items-center gap-1 cursor-pointer transition-all duration-200 relative ${
                             isSelected
-                              ? 'bg-rose-450 text-white border-black cartoon-shadow-sm'
-                              : 'bg-slate-50 border-yellow-600/40 hover:border-yellow-450'
+                              ? 'bg-slate-800 border-red-500/80 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                              : 'bg-slate-950/40 border-yellow-500/25 hover:border-yellow-500/50'
                           }`}
                         >
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white"
-                            style={{ background: `radial-gradient(circle, #facc1515 0%, #facc1555 100%)` }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10 overflow-hidden relative p-0.5 bg-slate-950"
                           >
                             <img 
                               src={poke.imageUrl} 
                               alt={poke.name} 
-                              className="w-8 h-8 object-contain filter drop-shadow" 
+                              className="w-7 h-7 object-contain filter drop-shadow" 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-slate-800 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[8px] font-mono font-bold text-slate-300 truncate w-full text-center uppercase tracking-wide">{poke.name}</span>
                           {isSame && (
-                            <span className="absolute -top-1.5 -right-0.5 text-[6.5px] font-black font-mono bg-red-600 border border-black text-white px-1.5 py-0.2 rounded-full scale-90 shadow-md">CLONE</span>
+                            <span className="absolute -top-1.5 -right-0.5 text-[6px] font-bold font-mono bg-red-600 text-white px-1 rounded-full scale-75 shadow-sm">CLONE</span>
                           )}
                         </button>
                       );
                     })}
                   </div>
- 
+
                   <div className="w-full flex justify-center">
-                    <PokemonCard pokemon={selectedCpu} label="BOT OPPONENT" badgeColor="bg-rose-500 text-white border-2 border-black" isCpu />
+                    <PokemonCard pokemon={selectedCpu} label="ENEMY CPU" badgeColor="bg-red-500 text-white border border-red-600/30" isCpu />
                   </div>
                 </div>
               </div>
- 
+
             </div>
           </div>
- 
-          {/* CHOOSE VENUE MAP & LAUNCH BLOCK */}
+
+          {/* RIGHT SIDE ACTIONS AND SETTINGS */}
           <div className="lg:col-span-4 flex flex-col gap-5">
-            <div className="bg-white border-4 border-black cartoon-shadow p-4 sm:p-5 rounded-3xl flex-1 flex flex-col justify-between">
+            <div className="glass-panel border border-white/5 p-5 rounded-3xl flex-1 flex flex-col justify-between gap-5">
               <div>
-                <h3 className="text-sm font-cartoon text-slate-800 uppercase tracking-wide mb-4 flex items-center gap-2">
-                  <span className="w-2.5 h-4 bg-yellow-400 border border-black rounded-sm" /> CHOOSE BATTLEFIELD:
+                <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-3 bg-yellow-400 rounded-sm block shadow-[0_0_6px_rgba(234,179,8,0.5)]" /> SELECT BATTLE VENUE:
                 </h3>
- 
-                <div className="flex flex-col gap-2.5">
+
+                <div className="flex flex-col gap-2">
                   {ARENAS.map((arena) => {
                     const isSel = selectedArena.id === arena.id;
                     return (
                       <button
                         key={arena.id}
                         onClick={() => selectArenaItem(arena)}
-                        className={`p-3.5 rounded-xl border-2 flex flex-col items-start gap-1 transition-all duration-300 text-left cursor-pointer ${
+                        className={`p-3 rounded-xl border flex flex-col items-start gap-1 transition-all duration-200 text-left cursor-pointer ${
                           isSel
-                            ? 'border-black bg-yellow-350 cartoon-shadow-sm text-slate-950 font-semibold'
-                            : 'border-black bg-slate-50 text-slate-800 hover:bg-slate-100'
+                            ? 'border-yellow-400 bg-yellow-405/10 text-slate-100 shadow-[0_0_12px_rgba(234,179,8,0.08)]'
+                            : 'border-white/5 bg-slate-950/40 text-slate-405 hover:border-slate-800 hover:bg-slate-900/40'
                         }`}
                       >
-                        <span className="text-xs font-cartoon text-slate-900 tracking-wide uppercase">{arena.name}</span>
-                        <p className="text-[10px] text-slate-600 leading-relaxed font-semibold line-clamp-2">{arena.description}</p>
+                        <span className={`text-[11px] font-display font-bold tracking-wide uppercase ${isSel ? 'text-yellow-450 text-yellow-405' : 'text-slate-205'}`}>{arena.name}</span>
+                        <p className="text-[9px] text-slate-500 leading-normal font-semibold line-clamp-2 mt-0.5">{arena.description}</p>
                       </button>
                     );
                   })}
                 </div>
               </div>
- 
-              <div className="pt-4 border-t-2 border-black/30 mt-4 flex flex-col gap-3.5">
-                <div className="bg-slate-50 p-3 rounded-2xl border-2 border-black flex items-center justify-center gap-4 shadow-inner text-xs text-slate-900">
+
+              <div className="pt-4 border-t border-white/5 flex flex-col gap-3">
+                <div className="bg-slate-950 p-3 rounded-xl border border-white/5 flex items-center justify-center gap-4 shadow-inner text-xs">
                   <div className="text-center">
-                    <div className="text-[8px] font-mono text-slate-500 uppercase font-black">YOUR HERO</div>
-                    <div className="font-cartoon text-yellow-600 uppercase tracking-wider">{selectedP1.name}</div>
+                    <div className="text-[8px] font-mono text-slate-505 uppercase">YOUR FIGHTER</div>
+                    <div className="font-display font-extrabold text-slate-100 text-xs tracking-wider uppercase mt-1">{selectedP1.name}</div>
                   </div>
-                  <span className="font-retro text-yellow-350 font-black text-[7px] bg-red-650 px-2 py-1 rounded border-2 border-black shadow animate-pulse">VS</span>
+                  <div className="font-bold text-slate-600">VS</div>
                   <div className="text-center">
-                    <div className="text-[8px] font-mono text-slate-500 uppercase font-black">OPPONENT</div>
-                    <div className="font-cartoon text-rose-650 uppercase tracking-wider">{selectedCpu.name}</div>
+                    <div className="text-[8px] font-mono text-slate-505 uppercase">AI BOT</div>
+                    <div className="font-display font-extrabold text-slate-150 text-xs tracking-wider uppercase mt-1">{selectedCpu.name}</div>
                   </div>
                 </div>
- 
+
                 <button
                   onClick={startMatch}
-                  className="w-full bg-gradient-to-r from-yellow-400 via-orange-500 to-amber-500 hover:from-yellow-500 hover:to-orange-600 text-slate-950 font-cartoon font-black text-sm tracking-widest uppercase transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] py-4 rounded-2xl shadow-lg border-2 border-black cursor-pointer shadow-amber-400/20 flex items-center justify-center gap-2.5"
+                  className="w-full bg-gradient-to-r from-yellow-405 to-amber-500 hover:from-yellow-500 hover:to-amber-550 active:scale-95 text-slate-950 font-display font-extrabold text-xs tracking-widest uppercase transition-all duration-200 py-4 rounded-xl shadow-[0_4px_16px_rgba(234,179,8,0.25)] flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Play className="w-5 h-5 fill-slate-950 text-slate-950" /> BATTLE START! ⚔️
+                  <Play className="w-4 h-4 fill-slate-950 text-slate-950" /> INITIATE LIVE DUEL! ⚔
                 </button>
               </div>
             </div>
- 
-            <div className="bg-amber-50 border-4 border-black p-4 rounded-2xl flex items-start gap-3 shadow-md text-slate-800">
-              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-              <div className="text-[10px] font-medium leading-relaxed">
-                <strong className="text-amber-600 uppercase font-cartoon tracking-wider text-xs block mb-1">Controls:</strong>
-                <span>Move with <code className="text-white font-bold bg-slate-900 px-1.5 py-0.5 rounded border border-black font-mono">W, A, S, D / Space</code>.</span>
-                <span className="block mt-1">Attack/Defense actions use keys:</span>
-                <span className="block mt-1 pl-1">⚡ <code className="text-yellow-500 font-mono font-bold">J</code> for <strong>Quick Melee</strong></span>
-                <span className="block pl-1">🔥 <code className="text-yellow-500 font-mono font-bold">K</code> for <strong>Heavy Melee</strong></span>
-                <span className="block pl-1">☄️ <code className="text-yellow-500 font-mono font-bold">L</code> for <strong>Special Projectile</strong> (cost 20 EN)</span>
-                <span className="block pl-1">🌟 <code className="text-yellow-500 font-mono font-bold">I</code> for <strong>Ultimate Move</strong> (cost 100 EN)</span>
+
+            {/* QUICK CONTROLS INSTRUCTIONS */}
+            <div className="bg-slate-900/50 border border-white/5 p-4 rounded-2xl flex items-start gap-3 shadow-md text-slate-350">
+              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-[10px] text-left leading-relaxed">
+                <strong className="text-amber-500 uppercase font-display font-bold text-xs block mb-1">KEYBOARD CONTROLS:</strong>
+                <span>Fighter Movement: <code className="text-yellow-400 font-bold bg-slate-950 px-1 py-0.5 rounded border border-white/5">W, A, S, D / Arrows</code>.</span>
+                <span className="block mt-1.5">Action Keys:</span>
+                <span className="block mt-1 pl-1">⚡ <code className="text-slate-300 font-mono font-bold bg-slate-950 px-1 py-0.5 rounded border border-white/5">J</code> Light Strike / Quick attack</span>
+                <span className="block pl-1">🔥 <code className="text-slate-300 font-mono font-bold bg-slate-950 px-1 py-0.5 rounded border border-white/5">K</code> Knockout Heavy Strike</span>
+                <span className="block pl-1">☄️ <code className="text-slate-300 font-mono font-bold bg-slate-950 px-1 py-0.5 rounded border border-white/5">L</code> Energy Ranged Ball (Cost: 20 Energy)</span>
+                <span className="block pl-1">🔮 <code className="text-slate-300 font-mono font-bold bg-slate-950 px-1 py-0.5 rounded border border-white/5">I</code> Ultimate Strike (Cost: 100 Energy)</span>
               </div>
             </div>
           </div>
- 
-        </div>
-      )}
-
-      {/* ONLINE PVP MULTIPLAYER LOBBY TAB */}
-      {activeTab === 'multiplayer' && (
-        <div className="bg-[#1e293b] cartoon-border cartoon-shadow p-5 sm:p-6 rounded-3xl flex flex-col gap-6 animate-fade-in relative overflow-hidden text-slate-100">
-          
-          <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/[0.08] blur-3xl rounded-full pointer-events-none" />
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b-2 border-black pb-4.5 gap-3">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-cartoon text-yellow-400 uppercase tracking-wide flex items-center gap-2.5 drop-shadow-[1.5px_1.5px_0_#000]">
-                <Globe className="w-6 h-6 text-red-500 animate-spin shrink-0" /> REAL-TIME ONLINE LOBBIES (PVP)
-              </h2>
-              <p className="text-xs text-yellow-105 font-medium mt-1">
-                Join a dynamic game room via code or create your own custom hub to challenge dual trainers around the world!
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-2 text-[10px] font-mono bg-red-650 border-2 border-black px-3 py-1.5 rounded-xl text-white font-black animate-pulse shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-ping" /> MATCHMAKING ONLINE
-            </div>
-          </div>
-
-          {multiplayerWarning && (
-            <div className="bg-red-500/10 border-2 border-red-500 p-3.5 rounded-2xl text-xs text-red-400 font-mono font-black flex items-center gap-2 animate-bounce">
-              <AlertTriangle className="w-5 h-5 shrink-0" />
-              {multiplayerWarning}
-            </div>
-          )}
-
-          {multiplayerStatus === 'idle' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* JOIN FORM */}
-              <div className="flex flex-col gap-4 bg-slate-950/40 p-5 rounded-2xl border-2 border-black shadow-inner">
-                <h3 className="text-xs font-cartoon text-yellow-400 uppercase tracking-wider border-b border-black/30 pb-2">
-                  1. Lobby Credentials:
-                </h3>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-cartoon text-slate-350 uppercase tracking-wide pl-1">Trainer Nickname:</label>
-                  <input
-                    type="text"
-                    value={playerNameInput}
-                    onChange={(e) => setPlayerNameInput(e.target.value)}
-                    maxLength={14}
-                    className="bg-slate-900 border-2 border-black rounded-xl px-4 py-3 text-slate-100 text-xs font-mono font-bold focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/30 transition-all shadow-inner"
-                    placeholder="Enter nickname (e.g. Ash Ketchum)"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-cartoon text-slate-350 uppercase tracking-wide pl-1">Target Room Code:</label>
-                  <input
-                    type="text"
-                    value={roomIdInput}
-                    onChange={(e) => setRoomIdInput(e.target.value.toUpperCase())}
-                    maxLength={16}
-                    className="bg-slate-900 border-2 border-black rounded-xl px-4 py-3 text-yellow-300 text-xs font-mono font-black tracking-widest focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400/30 transition-all shadow-inner uppercase"
-                    placeholder="EXAMPLE: ARENA-99"
-                  />
-                  <span className="text-[9px] font-mono text-slate-500 font-semibold pl-1">Tip: Invent a code word or host with the automatic default above</span>
-                </div>
-
-                <div className="flex flex-col gap-1.5 border-t border-black/25 pt-2.5">
-                  <label className="text-[10px] font-cartoon text-slate-350 uppercase tracking-wide pl-1 flex items-center gap-1">
-                    🌐 ONLINE MATCHMAKER SERVER URL:
-                  </label>
-                  <input
-                    type="text"
-                    value={matchmakingServerUrl}
-                    onChange={(e) => setMatchmakingServerUrl(e.target.value)}
-                    className="bg-slate-900 border-2 border-black rounded-xl px-4 py-2 text-[10.5px] font-mono font-semibold text-slate-300 focus:outline-none focus:border-yellow-400 transition-all shadow-inner"
-                    placeholder="https://..."
-                  />
-                  <p className="text-[8.5px] text-slate-400 leading-normal font-sans pl-1">
-                    On Vercel, this falls back automatically to the persistent application server (Cloud Run) so multiplayer matches run perfectly!
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    onClick={joinOnlineRoom}
-                    className="w-full bg-gradient-to-r from-red-600 via-orange-500 to-red-500 hover:from-red-700 hover:to-orange-600 text-white font-cartoon font-black text-sm py-4 px-5 rounded-2xl border-2 border-black cartoon-shadow-sm transition-all duration-300 transform active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2.5 uppercase tracking-wider"
-                  >
-                    <Globe className="w-5 h-5 animate-spin text-white" /> ENTER DUEL ROOM!
-                  </button>
-                </div>
-              </div>
-
-              {/* POKEMON SELECTOR PREVIEW */}
-              <div className="bg-slate-950/40 p-5 rounded-2xl border-2 border-black shadow-inner flex flex-col justify-between gap-4">
-                <div>
-                  <h3 className="text-xs font-cartoon text-yellow-400 uppercase tracking-wider border-b border-black/30 pb-2 mb-3">
-                    2. Select Your Combatant:
-                  </h3>
-
-                  <div className="grid grid-cols-4 gap-1.5 mb-4 max-h-[120px] overflow-y-auto pr-1">
-                    {POKEMONS.map((poke) => {
-                      const isSelected = selectedP1.id === poke.id;
-                      return (
-                        <button
-                          key={poke.id}
-                          onClick={() => selectP1Character(poke)}
-                          className={`p-1.5 rounded-lg border flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 relative group truncate ${
-                            isSelected
-                              ? 'bg-yellow-400/10 border-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)]'
-                              : 'bg-slate-900 border-black hover:border-slate-800'
-                          }`}
-                        >
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center border border-black overflow-hidden shrink-0 relative p-0.5 bg-slate-950">
-                            <img src={poke.imageUrl} alt={poke.name} className="w-6 h-6 object-contain filter" referrerPolicy="no-referrer" />
-                          </div>
-                          <span className="text-[8px] sm:text-[9.5px] font-sans font-black text-slate-200 truncate w-full text-center">{poke.name}</span>
-                        </button>
-                      );
-                    })}
-
-                    {unlockedSecretIds.map(secId => {
-                      const poke = BOOSTER_SECRET_POKEMONS.find(p => p.id === secId);
-                      if (!poke) return null;
-                      const isSelected = selectedP1.id === poke.id;
-                      return (
-                        <button
-                          key={poke.id}
-                          onClick={() => selectP1Character(poke)}
-                          className={`p-1.5 rounded-lg border-2 border-dashed flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 ${
-                            isSelected
-                              ? 'bg-amber-400/10 border-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.2)'
-                              : 'bg-slate-900 border-yellow-500/45 hover:border-yellow-400'
-                          }`}
-                        >
-                          <div className="w-7 h-7 rounded-full flex items-center justify-center border border-black overflow-hidden shrink-0 relative p-0.5 bg-slate-950">
-                            <img src={poke.imageUrl} alt={poke.name} className="w-6 h-6 object-contain" referrerPolicy="no-referrer" />
-                          </div>
-                          <span className="text-[8px] font-sans font-black text-yellow-400 truncate w-full text-center">{poke.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="flex justify-center w-full">
-                  <PokemonCard pokemon={selectedP1} label="ONLINE ROSTER" badgeColor="bg-yellow-400 text-slate-950 border-2 border-black" />
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* QUEUE/LOBBY WAITING SCREEN */}
-          {multiplayerStatus === 'connecting' && (
-            <div className="flex flex-col items-center justify-center py-16 gap-4">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full border-4 border-t-red-500 border-r-transparent border-b-transparent border-l-transparent animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <PokeBall className="w-10 h-10 animate-bounce" type="ultra" />
-                </div>
-              </div>
-              <p className="text-sm font-cartoon text-yellow-400 animate-pulse uppercase tracking-wider">Latching onto matchmaker servers...</p>
-              <p className="text-xs text-slate-400 font-sans font-medium">Please stand by while we compile the multiplayer channels.</p>
-            </div>
-          )}
-
-          {multiplayerStatus === 'queue' && (
-            <div className="flex flex-col items-center bg-slate-950/40 border-2 border-black p-6 rounded-3xl shadow-inner gap-6">
-              
-              <div className="text-center">
-                <span className="bg-[#ef4444] border-2 border-black text-white text-xs font-cartoon border border-red-500/20 px-5 py-2 rounded-full uppercase tracking-wider animate-pulse cartoon-shadow-sm inline-block">
-                  ⏳ WAITING FOR PVP CHALLENGER
-                </span>
-                <h3 className="text-4xl font-cartoon text-white tracking-wide uppercase leading-none mt-4 flex items-center justify-center gap-2">
-                  LOBBY KEY: <span className="text-yellow-300 select-all font-black tracking-widest">{connectedRoomId}</span>
-                </h3>
-                <p className="text-xs text-yellow-100 font-medium mt-2 max-w-md mx-auto leading-relaxed">
-                  Share this dual game code with a friend! They can paste it on their screen to automatically connect and launch the arena fight!
-                </p>
-              </div>
-
-              {/* Real-time Roster visualization */}
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-8 w-full max-w-lg my-2">
-                
-                {/* HOST P1 */}
-                <div className="flex-1 flex flex-col items-center bg-[#1e293b] p-4 rounded-2xl border-2 border-black w-full cartoon-shadow">
-                  <div className="w-10 h-10 rounded-full bg-yellow-400/10 border-2 border-yellow-400 flex items-center justify-center text-yellow-400 font-black text-sm">P1</div>
-                  <span className="text-[10px] font-mono text-slate-400 mt-2.5 font-bold uppercase">Player 1 (Host)</span>
-                  <span className="text-base font-cartoon text-yellow-450 mt-1 max-w-[140px] truncate">
-                    {(Object.values(lobbyPlayers) as any[]).find(p => p.idStr === 'player')?.name || 'Waiting...'}
-                  </span>
-                  <span className="text-[10px] font-cartoon text-green-400 font-black flex items-center gap-1.5 mt-3.5 bg-green-500/10 border-2 border-green-500 px-3 py-1 rounded-full uppercase tracking-wide">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-ping" /> READY
-                  </span>
-                </div>
-
-                <div className="font-cartoon text-slate-400 font-black text-sm animate-bounce bg-black px-4 py-2 border-2 border-black rounded-xl">VS</div>
-
-                {/* GUEST P2 */}
-                <div className="flex-1 flex flex-col items-center bg-[#1e293b] p-4 rounded-2xl border-2 border-black w-full cartoon-shadow">
-                  <div className="w-10 h-10 rounded-full bg-red-500/10 border-2 border-red-500 flex items-center justify-center text-red-500 font-black text-sm">P2</div>
-                  <span className="text-[10px] font-mono text-slate-400 mt-2.5 font-bold uppercase">Player 2 (Guest)</span>
-                  <span className="text-base font-cartoon text-red-400 mt-1 max-w-[140px] truncate">
-                    {(Object.values(lobbyPlayers) as any[]).find(p => p.idStr === 'cpu')?.name || 'Waiting...'}
-                  </span>
-                  {(Object.values(lobbyPlayers) as any[]).find(p => p.idStr === 'cpu') ? (
-                    <span className="text-[10px] font-cartoon text-green-400 font-black flex items-center gap-1.5 mt-3.5 bg-green-500/10 border-2 border-green-500 px-3 py-1 rounded-full uppercase tracking-wide">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400" /> CONNECTED
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-cartoon text-yellow-500 font-black animate-pulse flex items-center gap-1.5 mt-3.5 bg-yellow-500/10 border-2 border-yellow-550 px-3 py-1 rounded-full uppercase tracking-wide">
-                      🔒 WAITING
-                    </span>
-                  )}
-                </div>
-
-              </div>
-
-              <div className="w-full max-w-xs pt-2">
-                <button
-                  onClick={leaveMultiplayerLobby}
-                  className="w-full bg-[#ef4444] hover:bg-red-650 text-white border-2 border-black font-cartoon font-black text-xs py-3.5 rounded-2xl transition uppercase tracking-widest cursor-pointer cartoon-shadow-sm"
-                >
-                  Quit & Cancel Lobby
-                </button>
-              </div>
-
-            </div>
-          )}
 
         </div>
       )}
 
-      {/* CARD ALBUM TAB (PORTRAIT SHOWCASE) */}
+      {/* CARD LIBRARY COLLECTION */}
       {activeTab === 'album' && (
-        <div className="bg-white border-4 border-black cartoon-shadow p-5 sm:p-6 rounded-3xl flex flex-col gap-6 animate-fade-in relative text-slate-800">
+        <div className="glass-panel border border-white/5 p-5 sm:p-6 rounded-3xl flex flex-col gap-5 animate-fade-in relative text-slate-200">
           
-          <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-600/[0.04] blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute top-0 left-0 w-32 h-32 bg-emerald-500/[0.02] blur-3xl rounded-full pointer-events-none" />
 
-          <div className="border-b-2 border-black pb-4">
-            <h2 className="text-xl sm:text-2xl font-cartoon text-slate-850 uppercase tracking-wide flex items-center gap-2.5 drop-shadow-[1px_1px_0_rgba(0,0,0,0.05)]">
-              <BookOpen className="w-6 h-6 text-cyan-500 animate-pulse" /> POKÉMON CARD COLLECTION ALBUM
+          <div className="border-b border-white/5 pb-4">
+            <h2 className="text-lg sm:text-xl font-display font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-emerald-500 animate-pulse" /> POKÉMON COLLECTORS DECK ALBUM
             </h2>
-            <p className="text-xs text-slate-650 font-medium mt-1">
-              Browse the complete collection of Pokémon fighters. You can unlock elite secret legends (<strong className="text-amber-600">RARE</strong>) by ripping mystery booster packs, permanently saving them to your collection!
+            <p className="text-xs text-slate-400 font-normal mt-1 leading-relaxed">
+              Browse your registered holographic deck catalogs. Reveal ultra-rare hidden cards (<strong className="text-yellow-550 text-yellow-500 uppercase">RARE</strong>) by ripping foil mystery boosters to send them straight into live battle arenas!
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
             
-            {/* INVENTORY GRID - LEFT (7 COLS) */}
-            <div className="md:col-span-7 flex flex-col gap-3.5 bg-slate-50 p-4 rounded-3xl border-2 border-black h-auto max-h-[500px] overflow-y-auto shadow-inner">
-              <h3 className="text-xs font-cartoon text-slate-800 uppercase tracking-wide pl-1 mb-1.5 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-cyan-600" /> COLLECTIBLE CARD VAULT ({allAlbumPokemons.length} cards):
+            {/* DECK GRID VIEW */}
+            <div className="md:col-span-7 flex flex-col gap-3.5 bg-slate-950/40 p-4 rounded-2xl border border-white/5 max-h-[480px] overflow-y-auto">
+              <h3 className="text-[10px] font-mono text-slate-400 uppercase tracking-widest pl-1 mb-1.5 flex items-center gap-2">
+                <Layers className="w-4 h-4 text-emerald-500" /> REGISTERED CARDS ({allAlbumPokemons.length} Total Cards in Deck):
               </h3>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -821,46 +461,45 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                           audio.playBlock();
                         }
                       }}
-                      className={`p-2 rounded-xl border-2 flex flex-col items-center justify-between gap-2.5 transition-all duration-350 shrink-0 select-none cursor-pointer group relative ${
+                      className={`p-2 rounded-xl border flex flex-col items-center justify-between gap-3.5 transition-all duration-200 shrink-0 select-none cursor-pointer group relative ${
                         isUnlocked
                           ? isCurrentlySelected
-                            ? 'bg-cyan-200 border-black cartoon-shadow-sm'
-                            : 'bg-white border-black hover:bg-slate-100'
-                          : 'bg-slate-100/60 border-dashed border-slate-300 opacity-40 cursor-not-allowed'
+                            ? 'bg-slate-800 border-emerald-500/50 shadow-md'
+                            : 'bg-slate-950/40 border-white/5 hover:border-slate-800'
+                          : 'bg-slate-950/20 border-white/5 opacity-30 cursor-not-allowed'
                       }`}
                       disabled={!isUnlocked}
-                      title={isUnlocked ? poke.name : "Secret Legend - Locked"}
+                      title={isUnlocked ? poke.name : "Locked Secret Legend"}
                     >
                       {isSec && isUnlocked && (
-                        <span className="absolute -top-1.5 -right-0.5 uppercase font-mono font-black text-[5px] bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 px-1 py-0.2 border border-black rounded-full shadow z-10">FOIL</span>
+                        <span className="absolute -top-1.5 -right-0.5 uppercase font-mono font-bold text-[6px] bg-gradient-to-r from-yellow-400 to-amber-500 text-slate-950 px-1 py-0.2 border border-yellow-500/20 rounded-full shadow z-10 animate-pulse">RARE</span>
                       )}
 
                       <div 
-                        className={`w-10 h-10 rounded-full flex items-center justify-center border-2 overflow-hidden relative p-1 transition-all ${
+                        className={`w-9 h-9 rounded-full flex items-center justify-center border overflow-hidden relative p-0.5 transition-all ${
                           isUnlocked 
-                            ? 'bg-white border-black group-hover:scale-105'
-                            : 'bg-slate-200 border-slate-400'
+                            ? 'bg-slate-900 border-white/10 group-hover:scale-105'
+                            : 'bg-slate-950 border-white/5'
                         }`}
-                        style={{ background: isUnlocked ? `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}55 100%)` : '' }}
                       >
                         {isUnlocked ? (
                           <img 
                             src={poke.imageUrl} 
                             alt={poke.name} 
-                            className="w-9 h-9 object-contain filter drop-shadow select-none group-hover:rotate-2 duration-300 pointer-events-none" 
+                            className="w-8 h-8 object-contain filter drop-shadow select-none group-hover:rotate-1 duration-200 pointer-events-none" 
                             referrerPolicy="no-referrer"
                           />
                         ) : (
-                          <Lock className="w-4 h-4 text-slate-400" />
+                          <Lock className="w-3.5 h-3.5 text-slate-500" />
                         )}
                       </div>
 
                       <div className="text-center w-full min-w-0">
-                        <span className={`text-[10px] font-sans font-black block truncate leading-tight ${isUnlocked ? 'text-slate-800' : 'text-slate-400 font-light'}`}>
+                        <span className={`text-[9px] font-mono font-bold block truncate leading-tight uppercase tracking-wide ${isUnlocked ? 'text-slate-200' : 'text-slate-500'}`}>
                           {isUnlocked ? poke.name : '???'}
                         </span>
-                        <span className="text-[7.5px] font-mono text-slate-500 uppercase block leading-none mt-0.5">
-                          {isUnlocked ? (isSec ? 'Legend' : 'Starter') : 'Locked'}
+                        <span className="text-[7px] font-mono text-slate-500 uppercase block mt-0.5">
+                          {isUnlocked ? (isSec ? 'Legend' : 'Classic') : 'Locked'}
                         </span>
                       </div>
                     </button>
@@ -868,38 +507,37 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                 })}
               </div>
 
-              {/* Booster Pack Prompt block inside Album */}
-              <div className="mt-4 bg-yellow-50 border-4 border-black p-4 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md">
-                <p className="font-semibold text-slate-800 leading-relaxed text-[10px] sm:text-xs">
-                  Missing any secret god cards (<strong className="text-amber-600">Rayquaza, Mew, Garchomp, Arceus</strong>)? Take a shortcut!
+              {/* FOIL SWEEPER */}
+              <div className="mt-4 bg-slate-900/50 border border-white/5 p-4 rounded-xl flex items-center justify-between gap-3 text-xs flex-wrap">
+                <p className="text-slate-400 leading-normal text-[10.5px] max-w-[280px]">
+                  Missing rare stadium gods (e.g., <strong className="text-amber-500">Rayquaza, Mew, Arceus</strong>)? Put your luck to the test and unwrap mystery packs!
                 </p>
                 <button
                   onClick={() => {
                     setBoosterPackActive(true);
                     audio.playSelect();
                   }}
-                  className="bg-yellow-400 text-slate-950 hover:bg-yellow-500 active:scale-95 font-cartoon font-black text-[10px] sm:text-xs px-4 py-2.5 rounded-xl border-2 border-black cartoon-shadow-sm transition shrink-0 cursor-pointer uppercase tracking-wider"
+                  className="bg-yellow-405 text-slate-950 hover:bg-yellow-500 font-display font-extrabold text-[10px] px-4 py-2.5 rounded-lg border border-yellow-500/20 transition-all shrink-0 cursor-pointer uppercase tracking-wider"
                 >
-                  OPEN MYSTERY PACK
+                  Unrip Booster 🎁
                 </button>
               </div>
             </div>
 
-            {/* EXPANDED INTERACTIVE PREVIEW - RIGHT (5 COLS) */}
-            <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-50 border-2 border-black p-4 rounded-3xl relative shadow-xl min-h-[350px]">
+            {/* EXPANDED INTERACTIVE PREVIEW */}
+            <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-950/40 border border-white/5 p-4 rounded-2xl relative min-h-[350px]">
               
-              <div className="absolute top-1 bg-cyan-500 border-2 border-black text-white text-[8px] font-mono font-black tracking-widest px-3 py-1 rounded-full mb-2">
-                HOLOGRAPHIC ENVELOPE SHOWCASE ✦
+              <div className="absolute top-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[8px] font-mono font-bold tracking-widest px-3 py-1 rounded-full uppercase leading-none z-10">
+                CARD DECK HOLOGRAM VISUALIZER ✦
               </div>
 
               <div className="w-full flex justify-center mt-6">
-                <PokemonCard pokemon={albumSelected} label="COLLECTION CARD" badgeColor="bg-cyan-500 text-white border-2 border-black" />
+                <PokemonCard pokemon={albumSelected} label="PREVIEW CARD" badgeColor="bg-emerald-500/20 border-emerald-500/30 text-emerald-400 font-mono" />
               </div>
 
-              {/* Detailed information description in English */}
-              <div className="mt-4 bg-white border-2 border-black p-4 rounded-2xl w-full text-left">
-                <div className="text-[10px] font-cartoon text-cyan-600 uppercase tracking-wide">CARD BIO & DESCRIPTION:</div>
-                <p className="text-xs text-slate-700 leading-relaxed font-semibold mt-1.5 text-justify">
+              <div className="mt-4 bg-slate-950/90 border border-white/5 p-3.5 rounded-xl w-full text-left">
+                <div className="text-[9px] font-mono text-emerald-500 uppercase tracking-widest leading-none">CHARACTER BIO & ANCESTRY:</div>
+                <p className="text-[11px] text-slate-400 leading-relaxed mt-2 text-justify">
                   {albumSelected.description}
                 </p>
               </div>
@@ -912,53 +550,50 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
 
       {/* DETAILED POKÉMON ABILITIES TAB */}
       {activeTab === 'abilities' && (
-        <div className="bg-white border-4 border-black cartoon-shadow p-5 sm:p-6 rounded-3xl flex flex-col gap-6 animate-fade-in relative text-slate-800">
+        <div className="glass-panel border border-white/5 p-5 sm:p-6 rounded-3xl flex flex-col gap-5 animate-fade-in relative text-slate-200">
           
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-650/[0.04] blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/[0.02] blur-3xl rounded-full pointer-events-none" />
 
-          <div className="border-b-2 border-black pb-4">
-            <h2 className="text-xl sm:text-2xl font-cartoon text-slate-850 uppercase tracking-wide flex items-center gap-2.5 drop-shadow-[1px_1px_0_rgba(0,0,0,0.05)]">
-              <Sparkles className="w-6 h-6 text-purple-500 animate-pulse shrink-0" /> POKÉMON SPECIAL PASSIVES & ABILITIES
+          <div className="border-b border-white/5 pb-4">
+            <h2 className="text-lg sm:text-xl font-display font-bold text-slate-100 uppercase tracking-widest flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-400 animate-pulse shrink-0" /> STADIUM ABILITIES & CHARACTER PASSIVES
             </h2>
-            <p className="text-xs text-slate-650 font-medium mt-1">
-              Every Pokémon possess an unique specialized passive skill and defensive combat perk that modifies their damage curves and active gameplay style!
+            <p className="text-xs text-slate-400 font-normal mt-1 leading-normal">
+              Every card inherits an active perk and secondary element modifier, completely defining their defense parameters in live combat!
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5 max-h-[500px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4.5 max-h-[480px] overflow-y-auto pr-1">
             {allAlbumPokemons.map((poke) => {
               const isSec = poke.isSecret === true;
               return (
                 <div 
                   key={poke.id} 
-                  className={`p-4 rounded-2xl border-2 flex gap-4 transition-all hover:bg-slate-100 relative ${
+                  className={`p-4 rounded-xl border flex gap-4 transition-all hover:bg-slate-900/40 relative ${
                     isSec 
-                      ? 'bg-yellow-300/10 border-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.1)]' 
-                      : 'bg-slate-55 border-black shadow'
+                      ? 'bg-yellow-500/[0.03] border-yellow-500/20 shadow-[0_0_12px_rgba(234,179,8,0.05)]' 
+                      : 'bg-slate-950/40 border-white/5'
                   }`}
                 >
                   {isSec && (
-                    <span className="absolute top-2 right-2.5 text-[7px] font-cartoon bg-yellow-450 border border-black text-slate-950 px-2 py-0.5 rounded-full scale-90 shadow-md uppercase tracking-wider animate-pulse">SECRET PASSIVE</span>
+                    <span className="absolute top-2 right-2.5 text-[7px] font-mono bg-yellow-405/10 border border-yellow-400/30 text-yellow-500 px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">SECRET</span>
                   )}
 
-                  {/* Icon */}
                   <div 
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border-2 border-black"
-                    style={{ background: `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}55 100%)` }}
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/10 bg-slate-900"
                   >
-                    <img src={poke.imageUrl} alt={poke.name} className="w-10 h-10 object-contain filter drop-shadow" referrerPolicy="no-referrer" />
+                    <img src={poke.imageUrl} alt={poke.name} className="w-8 h-8 object-contain filter drop-shadow" referrerPolicy="no-referrer" />
                   </div>
 
-                  {/* Descriptions */}
                   <div className="text-left flex-1 min-w-0">
-                    <h4 className="text-sm font-cartoon text-slate-850 flex items-center gap-1.5 leading-tight uppercase">
+                    <h4 className="text-xs font-display font-bold text-slate-200 flex items-center gap-2 leading-tight uppercase">
                       {poke.name}
-                      <span className="text-[9px] font-mono text-purple-500 font-extrabold bg-purple-500/15 border border-purple-400 px-2 py-0.2 rounded-full leading-none shrink-0">
-                        {poke.abilityName || 'Passive'}
+                      <span className="text-[8px] font-mono text-purple-400 font-bold bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full leading-none shrink-0 uppercase tracking-widest">
+                        {poke.abilityName || 'Passive Aura'}
                       </span>
                     </h4>
-                    <p className="text-[11px] text-slate-650 leading-relaxed font-bold mt-1.5">
-                      {poke.abilityDesc || 'Unique specialized passive skill under evaluation.'}
+                    <p className="text-[10px] text-slate-400 leading-normal mt-1.5 font-normal">
+                      {poke.abilityDesc || 'Grants customized stat boosts and passive shield attributes inside combat matches.'}
                     </p>
                   </div>
                 </div>
@@ -973,7 +608,7 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
         <BoosterPack 
           onClose={() => {
             setBoosterPackActive(false);
-            reloadSecrets(); // automatically updates album and select grid with pulled rare pokemons!
+            reloadSecrets();
           }}
           onAccept={(pokemon) => {
             selectP1Character(pokemon);

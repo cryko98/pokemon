@@ -15,6 +15,7 @@ interface GameControllerProps {
   roomId?: string | null;
   multiplayerSide?: 'player' | 'cpu';
   clientSocket?: any;
+  onMatchFinished?: (winner: 'player' | 'cpu') => void;
 }
 
 export default function GameController({
@@ -26,7 +27,8 @@ export default function GameController({
   isMultiplayer = false,
   roomId = null,
   multiplayerSide = 'player',
-  clientSocket = null
+  clientSocket = null,
+  onMatchFinished
 }: GameControllerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -747,6 +749,9 @@ export default function GameController({
         setTimeout(() => {
           setMatchOver(true);
           setMatchWinner('player');
+          if (onMatchFinished) {
+            onMatchFinished('player');
+          }
           // Launch introductory glorious firework celebrations!
           for (let k = 0; k < 5; k++) {
             setTimeout(() => {
@@ -768,6 +773,9 @@ export default function GameController({
         setTimeout(() => {
           setMatchOver(true);
           setMatchWinner('cpu');
+          if (onMatchFinished) {
+            onMatchFinished('cpu');
+          }
         }, 1200);
       } else {
         setTimeout(() => {
@@ -1282,7 +1290,7 @@ export default function GameController({
     <div className="flex flex-col justify-between w-full h-full max-h-full max-w-5xl px-1 sm:px-2 py-1 select-none overflow-hidden gap-1 sm:gap-2 flex-1">
       
       {/* HEADER CONTROL BAR WITH LEAGUE STATS - REPOSITIONED AND COMPACTED */}
-      <div className="flex items-center justify-between w-full backdrop-blur-md bg-slate-950/70 border border-red-500/10 py-1.5 px-3 rounded-xl gap-2 shadow-lg z-10 shrink-0">
+      <div className="flex items-center justify-between w-full backdrop-blur-md bg-slate-950/70 border border-white/5 py-1.5 px-3 rounded-xl gap-2 shadow-lg z-10 shrink-0">
         <button
           onClick={onExitToMenu}
           className="flex items-center gap-1.5 text-[10px] sm:text-xs font-mono font-bold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/5 px-3 py-1.5 rounded-lg transition shadow cursor-pointer uppercase shrink-0"
@@ -1304,7 +1312,7 @@ export default function GameController({
                 className={`text-[8.5px] font-mono font-bold px-1.5 py-0.5 rounded uppercase transition-all duration-300 ${
                   difficulty === level
                     ? 'bg-gradient-to-r from-red-500 to-amber-500 text-white shadow-[0_0_8px_rgba(239,68,68,0.3)]'
-                    : 'text-slate-450 hover:bg-white/5'
+                    : 'text-slate-400 hover:bg-white/5'
                 }`}
               >
                 {level === 'easy' ? 'Easy' : level === 'normal' ? 'Normal' : 'Vet'}
@@ -1324,13 +1332,13 @@ export default function GameController({
       </div>
 
       {/* FIGHT BAR HUD STATS - SLIM AND COMPACT FOR MAXIMUM VIEWPORT ALLOCATION */}
-      <div className="relative w-full backdrop-blur-md bg-[#090b11]/80 border border-red-500/10 p-2 sm:p-3 pb-3 sm:pb-4 flex flex-col items-center gap-2 shadow-2xl z-10 rounded-xl shrink-0">
+      <div className="relative w-full backdrop-blur-md bg-slate-900/60 border border-white/5 p-2 sm:p-3 pb-3 sm:pb-4 flex flex-col items-center gap-2 shadow-2xl z-10 rounded-2xl shrink-0">
         
         {/* Combo Floats */}
         <div className="absolute top-16 left-4 z-10 pointer-events-none transition-all">
           {p1Combo > 1 && (
             <div className="flex flex-col items-start animate-bounce">
-              <span className="text-xl sm:text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-red-500 tracking-wider font-orbitron drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse">
+              <span className="text-xl sm:text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-orange-400 to-amber-500 tracking-wider font-display drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse">
                 {p1Combo} HITS!
               </span>
             </div>
@@ -1340,7 +1348,7 @@ export default function GameController({
         <div className="absolute top-16 right-4 z-10 pointer-events-none transition-all">
           {cpuCombo > 1 && (
             <div className="flex flex-col items-end animate-bounce">
-              <span className="text-xl sm:text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-400 tracking-wider font-orbitron drop-shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
+              <span className="text-xl sm:text-2xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-rose-500 via-pink-400 to-red-400 tracking-wider font-display drop-shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse">
                 {cpuCombo} HITS!
               </span>
             </div>
@@ -1353,8 +1361,8 @@ export default function GameController({
           {/* PLAYER 1 HEALTH & POWER METERS */}
           <div className="flex-1 flex flex-col items-start gap-1">
             <div className="flex items-center justify-between w-full">
-              <span className="font-display font-black text-slate-100 flex items-center gap-1.5 text-xs sm:text-sm">
-                <span className="text-[9px] bg-yellow-400 text-slate-900 font-extrabold px-1 py-0.2 rounded font-mono shadow-sm">P1</span>
+              <span className="font-display font-bold text-slate-100 flex items-center gap-1.5 text-xs sm:text-sm">
+                <span className="text-[9px] bg-indigo-500/20 border border-indigo-455/30 text-indigo-305 text-indigo-300 font-extrabold px-1.5 py-0.2 rounded font-mono shadow-sm">P1</span>
                 {playerPokemon.name}
               </span>
               <span className="text-[10px] font-mono font-medium text-slate-400">{p1Hp} / {playerPokemon.maxHp} HP</span>
@@ -1363,7 +1371,7 @@ export default function GameController({
             {/* HP Slot */}
             <div className="w-full bg-slate-950/80 rounded-lg border border-white/5 h-4 sm:h-5 overflow-hidden shadow-inner relative">
               <div 
-                className="h-full bg-gradient-to-r from-yellow-500 via-amber-400 to-yellow-300 transition-all duration-100 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                className="h-full bg-gradient-to-r from-yellow-405 via-amber-400 to-yellow-300 transition-all duration-100 shadow-[0_0_8px_rgba(245,158,11,0.3)]"
                 style={{ width: `${(p1Hp / playerPokemon.maxHp) * 100}%` }}
               />
               <div className="absolute top-0 right-0 bottom-0 bg-red-500/10 pointer-events-none" style={{ left: `${(p1Hp / playerPokemon.maxHp) * 100}%` }} />
@@ -1373,7 +1381,7 @@ export default function GameController({
             {/* Ultimate Energy Progress Meter */}
             <div className="w-full flex items-center gap-1.5 mt-0.5">
               <span className="text-[8px] sm:text-[9px] font-mono font-black text-yellow-400 tracking-wider flex items-center gap-0.5 shrink-0">
-                <Zap className={`w-3 h-3 ${p1Energy >= 100 ? 'text-yellow-400 animate-pulse' : 'text-slate-550'}`} /> POW
+                <Zap className={`w-3 h-3 ${p1Energy >= 100 ? 'text-yellow-400 animate-pulse' : 'text-slate-500'}`} /> POW
               </span>
               <div className="flex-1 bg-slate-950 rounded-md border border-white/5 h-2 overflow-hidden relative shadow-inner">
                 <div 
@@ -1388,26 +1396,26 @@ export default function GameController({
           </div>
 
           {/* TIMER ROUND STATS ROUND MIDDLE */}
-          <div className="flex flex-col items-center justify-center bg-slate-950 border-2 border-red-500/30 w-11 h-11 sm:w-13 sm:h-13 rounded-full relative shadow-[0_0_12px_rgba(239,68,68,0.15)] shrink-0 select-none">
-            <span className="text-xl sm:text-2xl font-black font-orbitron text-yellow-300 leading-none drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]">{timer}</span>
-            <span className="text-[7px] font-mono text-slate-500 uppercase tracking-wider mt-0.5">Sec</span>
+          <div className="flex flex-col items-center justify-center bg-slate-950/90 border border-white/10 w-11 h-11 sm:w-13 sm:h-13 rounded-full relative shadow-[0_4px_12px_rgba(0,0,0,0.5)] shrink-0 select-none">
+            <span className="text-xl sm:text-2xl font-black font-display text-yellow-400 leading-none drop-shadow-[0_0_6px_rgba(245,158,11,0.3)]">{timer}</span>
+            <span className="text-[7px] font-mono text-slate-500 uppercase tracking-widest mt-0.5 scale-90">Sec</span>
 
             {/* Round wins dots */}
-            <div className="absolute -bottom-4.5 flex items-center gap-1 bg-slate-950 px-2 py-0.5 rounded-full border border-red-500/20 shadow-md">
-              <div className={`w-1.5 h-1.5 rounded-full border ${playerWins >= 1 ? 'bg-yellow-400 border-yellow-300 shadow-[0_0_6px_#fbbf24]' : 'bg-slate-800 border-slate-700'}`} />
-              <div className={`w-1.5 h-1.5 rounded-full border ${playerWins >= 2 ? 'bg-yellow-400 border-yellow-300 shadow-[0_0_6px_#fbbf24]' : 'bg-slate-800 border-slate-700'}`} />
-              <span className="text-[7.5px] text-slate-550 font-bold font-mono">VS</span>
-              <div className={`w-1.5 h-1.5 rounded-full border ${cpuWins >= 1 ? 'bg-red-500 border-red-400 shadow-[0_0_6px_#ef4444]' : 'bg-slate-800 border-slate-700'}`} />
-              <div className={`w-1.5 h-1.5 rounded-full border ${cpuWins >= 2 ? 'bg-red-500 border-red-400 shadow-[0_0_6px_#ef4444]' : 'bg-slate-800 border-slate-700'}`} />
+            <div className="absolute -bottom-4.5 flex items-center gap-1.5 bg-slate-950/90 px-2.5 py-1 rounded-full border border-white/10 shadow-lg">
+              <div className={`w-1.5 h-1.5 rounded-full border ${playerWins >= 1 ? 'bg-yellow-400 border-yellow-350 shadow-[0_0_6px_#fbbf24]' : 'bg-slate-800 border-white/5'}`} />
+              <div className={`w-1.5 h-1.5 rounded-full border ${playerWins >= 2 ? 'bg-yellow-400 border-yellow-350 shadow-[0_0_6px_#fbbf24]' : 'bg-slate-800 border-white/5'}`} />
+              <span className="text-[7.5px] text-slate-500 font-bold font-mono">VS</span>
+              <div className={`w-1.5 h-1.5 rounded-full border ${cpuWins >= 1 ? 'bg-red-505 bg-rose-500 border-rose-400 shadow-[0_0_6px_#ef4444]' : 'bg-slate-800 border-white/5'}`} />
+              <div className={`w-1.5 h-1.5 rounded-full border ${cpuWins >= 2 ? 'bg-red-505 bg-rose-500 border-rose-400 shadow-[0_0_6px_#ef4444]' : 'bg-slate-800 border-white/5'}`} />
             </div>
           </div>
 
           {/* CPU / FIGHTER 2 HP & POWER METERS */}
           <div className="flex-1 flex flex-col items-end gap-1">
             <div className="flex items-center justify-between w-full flex-row-reverse">
-              <span className="font-display font-black text-slate-100 flex items-center justify-end gap-1.5 text-xs sm:text-sm">
+              <span className="font-display font-bold text-slate-100 flex items-center justify-end gap-1.5 text-xs sm:text-sm">
                 {cpuPokemon.name}
-                <span className="text-[9px] bg-red-600 text-white font-extrabold px-1 py-0.2 rounded font-mono shadow-sm">CPU</span>
+                <span className="text-[9px] bg-rose-505/20 border border-rose-500/20 text-rose-300 font-extrabold px-1.5 py-0.2 rounded font-mono shadow-sm">CPU</span>
               </span>
               <span className="text-[10px] font-mono font-medium text-slate-400">{cpuHp} / {cpuPokemon.maxHp} HP</span>
             </div>
@@ -1424,8 +1432,8 @@ export default function GameController({
 
             {/* CPU Energy Progress Meter */}
             <div className="w-full flex items-center gap-1.5 mt-0.5 flex-row-reverse">
-              <span className="text-[8px] sm:text-[9px] font-mono font-black text-red-400 tracking-wider flex items-center gap-0.5 shrink-0">
-                <Zap className={`w-3 h-3 ${cpuEnergy >= 100 ? 'text-red-400 animate-pulse' : 'text-slate-550'}`} /> POW
+              <span className="text-[8px] sm:text-[9px] font-mono font-black text-rose-400 tracking-wider flex items-center gap-0.5 shrink-0">
+                <Zap className={`w-3 h-3 ${cpuEnergy >= 100 ? 'text-rose-400 animate-pulse' : 'text-slate-500'}`} /> POW
               </span>
               <div className="flex-1 bg-slate-950 rounded-md border border-white/5 h-2 overflow-hidden relative shadow-inner">
                 <div 
@@ -1448,7 +1456,7 @@ export default function GameController({
       </div>
 
       {/* CORE 2D GAME CANVAS CONTAINER - FULL RESOLUTION DYNAMIC VIEWPORT ADAPTATION, NO SCROLLS */}
-      <div className="relative w-full flex-1 min-h-0 bg-[#06080e] border-2 border-red-500/20 shadow-2xl overflow-hidden rounded-2xl flex items-center justify-center">
+      <div className="relative w-full flex-1 min-h-0 bg-[#06080e] border border-white/5 shadow-2xl overflow-hidden rounded-2xl flex items-center justify-center">
         
         <canvas 
           ref={canvasRef}
@@ -1458,10 +1466,10 @@ export default function GameController({
 
         {/* ROUND ANNOUNCEMENTS BANNER OVERLAY */}
         {roundAnnouncement && (
-          <div className="absolute inset-0 bg-slate-950/85 flex items-center justify-center p-4 z-20 animate-fade-in backdrop-blur-xs">
+          <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-20 animate-fade-in backdrop-blur-sm">
             <div className="text-center">
               <div className="text-[10px] font-mono font-extrabold text-yellow-400 tracking-[0.25em] uppercase mb-1.5 animate-pulse">MATCH COMMENCING</div>
-              <h2 className="text-3xl md:text-5xl lg:text-5.5xl font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-yellow-200 to-red-400 select-none drop-shadow-[0_2px_15px_rgba(234,179,8,0.55)] font-orbitron py-1">
+              <h2 className="text-3xl md:text-5xl lg:text-5.5xl font-black italic tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-yellow-250 to-red-400 select-none drop-shadow-[0_2px_15px_rgba(234,179,8,0.55)] font-display py-1">
                 {roundAnnouncement}
               </h2>
               <p className="text-[9px] font-mono text-slate-400 mt-2 tracking-wide font-medium">Use Virtual touch buttons on your screen bottom or Keyboard action keys!</p>
@@ -1471,47 +1479,47 @@ export default function GameController({
 
         {/* ROUND OVER / KO BANNER OVERLAY */}
         {roundOver && !matchOver && !roundAnnouncement && (
-          <div className="absolute inset-0 bg-slate-950/85 flex items-center justify-center p-4 z-20 backdrop-blur-xs">
+          <div className="absolute inset-0 bg-slate-950/90 flex items-center justify-center p-4 z-20 backdrop-blur-sm">
             <div className="text-center animate-bounce">
-              <h2 className="text-4xl md:text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-white to-yellow-450 tracking-wider drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-orbitron py-0.5">
+              <h2 className="text-4xl md:text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-white to-yellow-400 tracking-wider drop-shadow-[0_0_20px_rgba(239,68,68,0.5)] font-display py-0.5">
                 K. O.
               </h2>
-              <p className="text-sm font-display font-black text-white mt-2 bg-slate-950/50 px-4 py-1.5 rounded-full border border-red-500/20">
+              <p className="text-sm font-display font-black text-white mt-2 bg-slate-900/40 px-4 py-1.5 rounded-full border border-white/5">
                 {roundWinnerName === 'DRAW!' ? 'DRAW!' : `${roundWinnerName} wins the round!`}
               </p>
-              <p className="text-[9px] font-mono text-slate-550 mt-2 font-bold uppercase tracking-wider">Loading next round...</p>
+              <p className="text-[9px] font-mono text-slate-500 mt-2 font-bold uppercase tracking-wider">Loading next round...</p>
             </div>
           </div>
         )}
 
         {/* MATCH GAME OVER DIALOG VIEW */}
         {matchOver && (
-          <div className="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-4 z-30 transition backdrop-blur-md animate-fade-in">
-            <div className="max-w-md w-full bg-slate-950 border-2 border-red-500/25 p-5 rounded-2xl text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 z-30 transition backdrop-blur-md animate-fade-in">
+            <div className="max-w-md w-full bg-slate-900/90 border border-white/10 p-5 rounded-3xl text-center shadow-2xl relative overflow-hidden backdrop-blur-xl">
               
-              <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/10 blur-2xl rounded-full animate-pulse" />
-              <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-red-600/10 blur-2xl rounded-full animate-pulse" />
+              <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/[0.04] blur-2xl rounded-full animate-pulse" />
+              <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-red-650/[0.04] blur-2xl rounded-full animate-pulse" />
 
               <div className="mx-auto w-12 h-12 bg-white/5 rounded-full border border-white/5 flex items-center justify-center mb-3.5 shadow-inner">
-                <Trophy className={`w-6 h-6 ${matchWinner === 'player' ? 'text-yellow-450 drop-shadow-[0_0_12px_rgba(245,158,11,0.5)] animate-bounce' : 'text-slate-600'}`} />
+                <Trophy className={`w-6 h-6 ${matchWinner === 'player' ? 'text-yellow-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.5)] animate-bounce' : 'text-slate-600'}`} />
               </div>
 
-              <h2 className="text-2xl font-orbitron font-black italic tracking-tight text-white uppercase bg-gradient-to-r from-white via-yellow-250 to-red-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-display font-black italic tracking-tight text-white uppercase">
                 {matchWinner === 'player' ? 'Victory!' : 'Defeat...'}
               </h2>
 
-              <p className="text-[11px] font-sans text-slate-350 mt-2 mb-4 leading-relaxed font-light">
+              <p className="text-[11px] font-sans text-slate-400 mt-2 mb-4 leading-relaxed font-light">
                 {matchWinner === 'player' ? (
-                  <>Congratulations! Your controlled <span className="font-bold text-yellow-400 font-display">{playerPokemon.name}</span> has defeated the CPU-controlled <span className="font-bold text-slate-400">{cpuPokemon.name}</span> in the pocket tournament league!</>
+                  <>Congratulations! Your controlled <span className="font-bold text-yellow-400 font-display">{playerPokemon.name}</span> has defeated the CPU-controlled <span className="font-bold text-slate-300">{cpuPokemon.name}</span> in the pocket tournament league!</>
                 ) : (
-                  <>Defeated! The CPU-controlled <span className="font-bold text-red-400">{cpuPokemon.name}</span> was too strong this match. Practice and try again!</>
+                  <>Defeated! The CPU-controlled <span className="font-bold text-rose-450">{cpuPokemon.name}</span> was too strong this match. Practice and try again!</>
                 )}
               </p>
 
               <div className="flex flex-col gap-2">
                 <button
                   onClick={restartMatch}
-                  className="w-full bg-gradient-to-r from-yellow-450 to-red-500 hover:from-yellow-500 hover:to-red-600 text-white font-orbitron font-extrabold py-2.5 rounded-xl transition shadow-[0_0_15px_rgba(239,68,68,0.25)] flex items-center justify-center gap-1.5 cursor-pointer text-xs uppercase tracking-wider"
+                  className="w-full bg-gradient-to-r from-yellow-405 to-red-500 hover:from-yellow-400 hover:to-red-600 text-slate-950 font-display font-extrabold py-3.5 rounded-2xl transition shadow-[0_4px_15px_rgba(239,68,68,0.15)] flex items-center justify-center gap-1.5 cursor-pointer text-xs uppercase tracking-wider"
                 >
                   <RotateCcw className="w-3.5 h-3.5" /> Rematch (Play Again)
                 </button>
@@ -1519,13 +1527,13 @@ export default function GameController({
                 <div className="grid grid-cols-2 gap-2 mt-0.5">
                   <button
                     onClick={onSelectDifferentCharacters}
-                    className="bg-white/5 hover:bg-white/10 text-[9px] font-bold text-slate-300 hover:text-white py-2 rounded-lg transition border border-white/5 uppercase tracking-wider cursor-pointer font-mono"
+                    className="bg-slate-800/80 hover:bg-slate-800 text-[9px] font-bold text-slate-300 hover:text-white py-2.5 rounded-xl transition border border-white/5 uppercase tracking-wider cursor-pointer font-mono"
                   >
                     Swap Hero
                   </button>
                   <button
                     onClick={onExitToMenu}
-                    className="bg-white/5 hover:bg-white/10 text-[9px] font-bold text-slate-300 hover:text-white py-2 rounded-lg transition border border-white/5 uppercase tracking-wider cursor-pointer font-mono"
+                    className="bg-slate-800/80 hover:bg-slate-800 text-[9px] font-bold text-slate-300 hover:text-white py-2.5 rounded-xl transition border border-white/5 uppercase tracking-wider cursor-pointer font-mono"
                   >
                     Main Menu
                   </button>
@@ -1539,19 +1547,19 @@ export default function GameController({
       </div>
 
       {/* DETAILED DIRECT Retro Gamepad Controller PAD - FULL WIDTH AT THE VERY BOTTOM */}
-      <div className="w-full backdrop-blur-md bg-slate-950/70 border border-white/5 sm:border-red-500/10 px-3 py-2 sm:py-2.5 rounded-2xl shadow-xl flex flex-col justify-center shrink-0">
+      <div className="w-full backdrop-blur-md bg-slate-950/70 border border-white/5 px-3 py-2 sm:py-2.5 rounded-2xl shadow-xl flex flex-col justify-center shrink-0">
         
         <div className="flex flex-row items-center gap-3 sm:gap-4 justify-between w-full">
           
           {/* 1. Direcetion D-PAD Cluster (LEFT, JUMP, RIGHT, BLOCK) */}
-          <div className="flex items-center gap-1.5 bg-slate-900/40 p-1 rounded-xl border border-white/5 shadow-inner scale-90 sm:scale-100 origin-left shrink-0">
+          <div className="flex items-center gap-1.5 bg-slate-900/60 p-1.5 rounded-2xl border border-white/5 shadow-inner scale-90 sm:scale-100 origin-left shrink-0">
             <button
               onMouseDown={() => triggerVirtualAction('left')}
               onTouchStart={(e) => { e.preventDefault(); triggerVirtualAction('left'); }}
               onMouseUp={() => releaseVirtualAction('left')}
               onMouseLeave={() => releaseVirtualAction('left')}
               onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('left'); }}
-              className="w-10 h-10 sm:w-11 sm:h-11 bg-red-600/15 hover:bg-red-600/30 border border-red-500/20 active:bg-red-600 rounded-lg flex flex-col items-center justify-center text-slate-300 shadow active:text-white font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-transform active:scale-95"
+              className="w-10 h-10 sm:w-11 sm:h-11 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 active:bg-indigo-600 rounded-xl flex flex-col items-center justify-center text-indigo-400 shadow active:text-white font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-transform active:scale-95"
               title="Left (A)"
             >
               <span className="text-[12px] sm:text-sm">◀</span>
@@ -1565,7 +1573,7 @@ export default function GameController({
                 onMouseUp={() => releaseVirtualAction('jump')}
                 onMouseLeave={() => releaseVirtualAction('jump')}
                 onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('jump'); }}
-                className="w-10 h-8 sm:w-11 sm:h-9 bg-yellow-400/15 hover:bg-yellow-400/30 border border-yellow-400/20 active:bg-yellow-400 active:text-slate-950 rounded-lg flex flex-col items-center justify-center text-slate-300 shadow font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-all active:scale-95"
+                className="w-10 h-8 sm:w-11 sm:h-9 bg-yellow-405/10 hover:bg-yellow-405/20 border border-yellow-400/20 active:bg-yellow-400 active:text-slate-950 rounded-xl flex flex-col items-center justify-center text-yellow-500 shadow font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-all active:scale-95"
                 title="Jump (W)"
               >
                 <span className="text-[9px]">▲</span>
@@ -1578,7 +1586,7 @@ export default function GameController({
                 onMouseUp={() => releaseVirtualAction('block')}
                 onMouseLeave={() => releaseVirtualAction('block')}
                 onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('block'); }}
-                className="w-10 h-8 sm:w-11 sm:h-9 bg-slate-800/60 hover:bg-slate-800 border border-slate-700 active:bg-red-500 rounded-lg flex flex-col items-center justify-center text-slate-400 active:text-white shadow font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-all active:scale-95"
+                className="w-10 h-8 sm:w-11 sm:h-9 bg-slate-800/40 hover:bg-slate-805 border border-white/5 hover:border-white/10 active:bg-slate-705 rounded-xl flex flex-col items-center justify-center text-slate-400 active:text-white shadow font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-all active:scale-95"
                 title="Block (S)"
               >
                 <span className="text-[6px]">BLOCK</span>
@@ -1592,7 +1600,7 @@ export default function GameController({
               onMouseUp={() => releaseVirtualAction('right')}
               onMouseLeave={() => releaseVirtualAction('right')}
               onTouchEnd={(e) => { e.preventDefault(); releaseVirtualAction('right'); }}
-              className="w-10 h-10 sm:w-11 sm:h-11 bg-red-600/15 hover:bg-red-600/30 border border-red-500/20 active:bg-red-600 rounded-lg flex flex-col items-center justify-center text-slate-300 shadow active:text-white font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-transform active:scale-95"
+              className="w-10 h-10 sm:w-11 sm:h-11 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 active:bg-indigo-600 rounded-xl flex flex-col items-center justify-center text-indigo-400 shadow active:text-white font-mono font-black text-[9px] uppercase cursor-pointer select-none transition-transform active:scale-95"
               title="Right (D)"
             >
               <span className="text-[12px] sm:text-sm">▶</span>
@@ -1602,7 +1610,7 @@ export default function GameController({
 
           {/* Core Tip HUD */}
           <div className="hidden lg:flex flex-col text-center justify-center leading-normal max-w-xs">
-            <span className="text-[8px] font-mono font-black text-red-400 uppercase tracking-widest block mb-0.5">Quick Guide tip:</span>
+            <span className="text-[8px] font-mono font-black text-rose-400 uppercase tracking-widest block mb-0.5">Quick Guide tip:</span>
             <p className="text-[9.5px] font-sans text-slate-400 font-light">
               Press <span className="text-yellow-400 font-bold">[S]</span> or <span className="text-yellow-400 font-bold">[BLOCK]</span> button to absorb 85% of incoming damages!
             </p>
@@ -1615,9 +1623,9 @@ export default function GameController({
                 triggerVirtualAction('quick');
                 audio.playSelect();
               }}
-              className="bg-red-600/10 hover:bg-red-600/20 border border-red-500/20 active:bg-red-650 text-slate-150 py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer shadow-md h-11 sm:h-13"
+              className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 active:bg-red-600 text-slate-100 py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer shadow-md h-11 sm:h-13"
             >
-              <span className="text-[10px] sm:text-xs font-sans font-black text-red-400">PUNCH</span>
+              <span className="text-[10px] sm:text-xs font-display font-extrabold text-red-400">PUNCH</span>
               <span className="text-[7.5px] font-mono text-slate-400 font-bold">[ J ]</span>
             </button>
 
@@ -1626,9 +1634,9 @@ export default function GameController({
                 triggerVirtualAction('heavy');
                 audio.playSelect();
               }}
-              className="bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/20 active:bg-yellow-400 active:text-slate-950 text-slate-150 py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer shadow-md h-11 sm:h-13"
+              className="bg-yellow-405/10 hover:bg-yellow-405/20 border border-yellow-405/20 active:bg-yellow-400 active:text-slate-950 text-slate-100 py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition active:scale-95 cursor-pointer shadow-md h-11 sm:h-13"
             >
-              <span className="text-[10px] sm:text-xs font-sans font-black text-yellow-300 group-active:text-slate-950">KICK</span>
+              <span className="text-[10px] sm:text-xs font-display font-extrabold text-yellow-300">KICK</span>
               <span className="text-[7.5px] font-mono text-slate-400 font-bold">[ K ]</span>
             </button>
 
@@ -1649,7 +1657,7 @@ export default function GameController({
                 {playerPokemon.id === 'mewtwo' && <Sparkles className="w-3.5 h-3.5 text-purple-400" />}
                 {playerPokemon.id === 'snorlax' && <Star className="w-3.5 h-3.5 text-slate-400" />}
               </div>
-              <span className="text-[7.5px] font-mono text-slate-450 uppercase font-black tracking-tighter">[ L ]</span>
+              <span className="text-[7.5px] font-mono text-slate-400 uppercase font-black tracking-tighter">[ L ]</span>
             </button>
 
             <button
@@ -1660,12 +1668,12 @@ export default function GameController({
               }}
               className={`py-1 px-1 sm:px-2 rounded-xl flex flex-col items-center justify-center gap-0.5 transition shadow-md h-11 sm:h-13 ${
                 p1Energy >= 100
-                  ? 'bg-gradient-to-r from-red-600 via-yellow-400 to-red-500 hover:from-red-700 hover:to-red-600 border border-yellow-300 text-slate-950 font-black animate-pulse cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.4)] active:scale-95'
-                  : 'bg-slate-950/40 border border-white/5 text-slate-650 cursor-not-allowed'
+                  ? 'bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 border border-yellow-300 text-slate-950 font-black animate-pulse cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.4)] active:scale-95'
+                  : 'bg-slate-950/40 border border-white/5 text-slate-500 cursor-not-allowed'
               }`}
             >
-              <Trophy className={`w-3.5 h-3.5 ${p1Energy >= 100 ? 'text-slate-950' : 'text-slate-600'}`} />
-              <span className="text-[9px] sm:text-[10px] font-orbitron font-extrabold tracking-tighter leading-none">ULTI [ I ]</span>
+              <Trophy className={`w-3.5 h-3.5 ${p1Energy >= 100 ? 'text-slate-950' : 'text-slate-650'}`} />
+              <span className="text-[9px] sm:text-[10px] font-display font-extrabold tracking-tighter leading-none">ULTI [ I ]</span>
             </button>
           </div>
 

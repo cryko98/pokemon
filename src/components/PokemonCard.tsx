@@ -12,12 +12,12 @@ interface PokemonCardProps {
 export default function PokemonCard({ pokemon, label, badgeColor = 'bg-amber-400 text-slate-950 border-amber-500', isCpu = false }: PokemonCardProps) {
   // Determine energy symbol background based on Pokemon element type
   const getEnergyBadge = (type: string) => {
-    if (type.includes('Electric')) return <span className="w-4 h-4 rounded-full bg-yellow-400 border border-yellow-600 shadow-sm flex items-center justify-center text-[8px] font-mono font-black text-slate-950">⚡</span>;
-    if (type.includes('Fire')) return <span className="w-4 h-4 rounded-full bg-orange-500 border border-orange-700 shadow-sm flex items-center justify-center text-[8px] font-mono font-black text-white">🔥</span>;
-    if (type.includes('Water')) return <span className="w-4 h-4 rounded-full bg-blue-500 border border-blue-700 shadow-sm flex items-center justify-center text-[8px] font-mono font-black text-white">💧</span>;
-    if (type.includes('Ghost')) return <span className="w-4 h-4 rounded-full bg-purple-700 border border-purple-900 shadow-sm flex items-center justify-center text-[8px] font-mono font-black text-white">👁️</span>;
-    if (type.includes('Fighting')) return <span className="w-4 h-4 rounded-full bg-red-600 border border-red-800 shadow-sm flex items-center justify-center text-[8px] font-mono font-black text-white">👊</span>;
-    return <span className="w-4 h-4 rounded-full bg-slate-400 border border-slate-600 shadow-sm flex items-center justify-center text-[8px] font-mono font-black text-slate-950">⭐</span>;
+    if (type.includes('Electric')) return <span className="w-4 h-4 rounded-full bg-yellow-500/10 border border-yellow-500/30 shadow-[0_0_8px_rgba(234,179,8,0.2)] flex items-center justify-center text-[9px] font-mono font-bold text-yellow-400">⚡</span>;
+    if (type.includes('Fire')) return <span className="w-4 h-4 rounded-full bg-red-500/10 border border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.2)] flex items-center justify-center text-[9px] font-mono font-bold text-red-400">🔥</span>;
+    if (type.includes('Water')) return <span className="w-4 h-4 rounded-full bg-[#1e40af]/30 border border-blue-500/30 shadow-[0_0_8px_rgba(59,130,246,0.2)] flex items-center justify-center text-[9px] font-mono font-bold text-blue-400">💧</span>;
+    if (type.includes('Ghost')) return <span className="w-4 h-4 rounded-full bg-purple-950/30 border border-purple-500/30 shadow-[0_0_8px_rgba(168,85,247,0.2)] flex items-center justify-center text-[9px] font-mono font-bold text-purple-400">👁️</span>;
+    if (type.includes('Fighting')) return <span className="w-4 h-4 rounded-full bg-red-950/40 border border-red-650/30 shadow-[0_0_8px_rgba(220,38,38,0.2)] flex items-center justify-center text-[9px] font-mono font-bold text-red-550">👊</span>;
+    return <span className="w-4 h-4 rounded-full bg-slate-800 border border-slate-600 shadow-[0_0_8px_rgba(255,255,255,0.1)] flex items-center justify-center text-[9px] font-mono font-bold text-slate-300">⭐</span>;
   };
 
   // Determine card base theme styling
@@ -25,124 +25,106 @@ export default function PokemonCard({ pokemon, label, badgeColor = 'bg-amber-400
     switch (id) {
       case 'pikachu':
         return {
-          border: 'border-[#EAB308]',
-          outerBg: 'bg-gradient-to-b from-yellow-300 via-yellow-400 to-yellow-500',
-          innerBg: 'bg-slate-900/90 text-yellow-300',
-          gradientBg: 'from-amber-200 via-yellow-100 to-yellow-300',
+          glow: 'shadow-[0_0_20px_rgba(234,179,8,0.15)] hover:shadow-[0_0_35px_rgba(234,179,8,0.3)]',
+          borderColor: 'border-yellow-500/30 hover:border-yellow-405',
+          accentColor: 'text-yellow-400',
           elementSymbol: '⚡',
-          tcgColor: 'text-yellow-600',
           typeLabel: 'Lightning',
           weakness: 'Grass',
           resistance: 'Metal',
           retreat: 1,
-          foilLine: 'bg-gradient-to-r from-transparent via-white/20 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-yellow-405/20 to-transparent',
         };
       case 'charizard':
         return {
-          border: 'border-[#EA580C]',
-          outerBg: 'bg-gradient-to-b from-orange-400 via-orange-500 to-red-600',
-          innerBg: 'bg-slate-900/90 text-orange-400',
-          gradientBg: 'from-orange-300 via-orange-100 to-red-300',
+          glow: 'shadow-[0_0_20px_rgba(239,68,68,0.15)] hover:shadow-[0_0_35px_rgba(239,68,68,0.3)]',
+          borderColor: 'border-orange-500/30 hover:border-orange-505',
+          accentColor: 'text-orange-400',
           elementSymbol: '🔥',
-          tcgColor: 'text-red-600',
           typeLabel: 'Fire / Flying',
           weakness: 'Water',
           resistance: 'Fighting',
           retreat: 3,
-          foilLine: 'bg-gradient-to-r from-transparent via-orange-200/30 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-red-500/25 to-transparent',
         };
       case 'blastoise':
         return {
-          border: 'border-[#1D4ED8]',
-          outerBg: 'bg-gradient-to-b from-sky-400 via-blue-500 to-indigo-600',
-          innerBg: 'bg-slate-900/90 text-blue-300',
-          gradientBg: 'from-blue-200 via-sky-100 to-indigo-300',
+          glow: 'shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_35px_rgba(59,130,246,0.3)]',
+          borderColor: 'border-blue-500/30 hover:border-blue-405',
+          accentColor: 'text-blue-400',
           elementSymbol: '💧',
-          tcgColor: 'text-blue-600',
           typeLabel: 'Water',
           weakness: 'Lightning',
           resistance: 'Fire',
           retreat: 4,
-          foilLine: 'bg-gradient-to-r from-transparent via-blue-200/30 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-blue-500/25 to-transparent',
         };
       case 'gengar':
         return {
-          border: 'border-[#6B21A8]',
-          outerBg: 'bg-gradient-to-b from-purple-500 via-purple-700 to-indigo-950',
-          innerBg: 'bg-slate-900/90 text-purple-400',
-          gradientBg: 'from-purple-300 via-indigo-100 to-purple-400',
+          glow: 'shadow-[0_0_20px_rgba(168,85,247,0.15)] hover:shadow-[0_0_35px_rgba(168,85,247,0.3)]',
+          borderColor: 'border-purple-500/30 hover:border-purple-405',
+          accentColor: 'text-purple-400',
           elementSymbol: '👁️',
-          tcgColor: 'text-purple-600',
           typeLabel: 'Ghost / Poison',
           weakness: 'Dark',
           resistance: 'Fighting',
           retreat: 1,
-          foilLine: 'bg-gradient-to-r from-transparent via-purple-200/30 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-purple-500/25 to-transparent',
         };
       case 'lucario':
         return {
-          border: 'border-[#0891B2]',
-          outerBg: 'bg-gradient-to-b from-cyan-400 via-cyan-600 to-slate-800',
-          innerBg: 'bg-slate-900/90 text-cyan-400',
-          gradientBg: 'from-cyan-200 via-slate-100 to-cyan-300',
+          glow: 'shadow-[0_0_20px_rgba(6,182,212,0.15)] hover:shadow-[0_0_35px_rgba(6,182,212,0.3)]',
+          borderColor: 'border-cyan-500/30 hover:border-cyan-405',
+          accentColor: 'text-cyan-400',
           elementSymbol: '👊',
-          tcgColor: 'text-cyan-600',
           typeLabel: 'Fighting / Steel',
           weakness: 'Psychic',
           resistance: 'Metal',
           retreat: 2,
-          foilLine: 'bg-gradient-to-r from-transparent via-cyan-200/30 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-cyan-500/25 to-transparent',
         };
       case 'greninja':
         return {
-          border: 'border-blue-900',
-          outerBg: 'bg-gradient-to-b from-blue-700 via-blue-900 to-indigo-950',
-          innerBg: 'bg-slate-900/90 text-blue-400',
-          gradientBg: 'from-blue-900 via-cyan-800 to-blue-950',
+          glow: 'shadow-[0_0_20px_rgba(29,78,216,0.15)] hover:shadow-[0_0_35px_rgba(29,78,216,0.3)]',
+          borderColor: 'border-blue-800/40 hover:border-blue-505',
+          accentColor: 'text-blue-400',
           elementSymbol: '💧',
-          tcgColor: 'text-blue-800',
           typeLabel: 'Water / Dark',
           weakness: 'Lightning',
           resistance: 'Psychic',
           retreat: 1,
-          foilLine: 'bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-sky-400/25 to-transparent',
         };
       case 'mewtwo':
         return {
-          border: 'border-[#7C3AED]',
-          outerBg: 'bg-gradient-to-b from-purple-400 via-indigo-500 to-purple-800',
-          innerBg: 'bg-slate-900/90 text-purple-300',
-          gradientBg: 'from-purple-200 via-indigo-100 to-purple-300',
+          glow: 'shadow-[0_0_20px_rgba(124,58,237,0.18)] hover:shadow-[0_0_35px_rgba(124,58,237,0.3)]',
+          borderColor: 'border-violet-500/30 hover:border-violet-405',
+          accentColor: 'text-violet-400',
           elementSymbol: '👁️',
-          tcgColor: 'text-purple-600',
           typeLabel: 'Psychic',
           weakness: 'Dark',
           resistance: 'Fighting',
           retreat: 2,
-          foilLine: 'bg-gradient-to-r from-transparent via-pink-300/30 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-pink-400/25 to-transparent',
         };
       case 'snorlax':
         return {
-          border: 'border-slate-600',
-          outerBg: 'bg-gradient-to-b from-slate-400 via-slate-500 to-slate-700',
-          innerBg: 'bg-slate-900/90 text-slate-300',
-          gradientBg: 'from-slate-300 via-slate-100 to-slate-400',
+          glow: 'shadow-[0_0_20px_rgba(148,163,184,0.1)] hover:shadow-[0_0_35px_rgba(148,163,184,0.25)]',
+          borderColor: 'border-slate-600/30 hover:border-slate-405',
+          accentColor: 'text-slate-400',
           elementSymbol: '⭐',
-          tcgColor: 'text-slate-600',
           typeLabel: 'Normal',
           weakness: 'Fighting',
           resistance: 'None',
           retreat: 4,
-          foilLine: 'bg-gradient-to-r from-transparent via-slate-100/30 to-transparent',
+          foilLine: 'bg-gradient-to-r from-transparent via-slate-400/20 to-transparent',
         };
       default:
         return {
-          border: 'border-slate-500',
-          outerBg: 'bg-gradient-to-b from-slate-300 via-slate-400 to-slate-500',
-          innerBg: 'bg-slate-900/90 text-slate-300',
-          gradientBg: 'from-slate-200 via-slate-100 to-slate-300',
+          glow: 'shadow-[0_0_20px_rgba(255,255,255,0.08)] hover:shadow-[0_0_35px_rgba(255,255,255,0.2)]',
+          borderColor: 'border-slate-600/30 hover:border-slate-405',
+          accentColor: 'text-slate-300',
           elementSymbol: '⭐',
-          tcgColor: 'text-slate-600',
           typeLabel: 'Colorless',
           weakness: 'None',
           resistance: 'None',
@@ -155,129 +137,131 @@ export default function PokemonCard({ pokemon, label, badgeColor = 'bg-amber-400
   const theme = getCardTheme(pokemon.id);
 
   return (
-    <div className={`w-full max-w-[290px] mx-auto rounded-2xl p-3 border-2 border-black bg-gradient-to-b ${theme.outerBg} cartoon-shadow-sm relative overflow-hidden flex flex-col justify-between text-slate-950 select-none group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_15px_30px_rgba(0,0,0,0.5)]`}>
+    <div className={`w-full max-w-[285px] mx-auto rounded-[24px] p-4 border ${theme.borderColor} ${theme.glow} bg-gradient-to-b from-slate-900/90 via-slate-900/95 to-slate-950/100 relative overflow-hidden flex flex-col justify-between text-slate-100 select-none group transition-all duration-300 hover:scale-[1.03]`}>
+      
       {/* Label Badge Overlay (Player 1 / CPU Opponent) */}
       {label && (
-        <div className={`absolute top-0.5 left-1/2 -translate-x-1/2 text-[9px] font-cartoon px-3.5 py-1 rounded-b-xl border-2 border-black uppercase tracking-wider z-20 ${badgeColor} select-none`}>
+        <div className={`absolute top-0 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold px-3.5 py-1 rounded-b-xl border-x border-b border-white/5 uppercase tracking-wider z-20 ${badgeColor} select-none shadow-md backdrop-blur-md`}>
           {label}
         </div>
       )}
 
-      {/* Holofoil shine overlay */}
-      <div className={`absolute inset-0 translate-x-[-120%] rotate-12 ${theme.foilLine} w-[250%] h-[200%] pointer-events-none group-hover:translate-x-[100%] transition-transform duration-1000 ease-out z-10 opacity-70`} />
+      {/* Elegant Holofoil glint animation */}
+      <div className={`absolute inset-0 translate-x-[-120%] rotate-12 ${theme.foilLine} w-[260%] h-[200%] pointer-events-none group-hover:translate-x-[110%] transition-transform duration-1000 ease-out z-10 opacity-40`} />
 
-      <div className="flex flex-col gap-2 relative z-10 mt-2">
+      <div className="flex flex-col gap-3 relative z-10 mt-2">
         {/* Card Header */}
-        <div className="flex justify-between items-center px-1 border-b-2 border-black/30 pb-1">
-          <div className="flex flex-col line-height-tight">
-            <span className="text-[7.5px] font-retro text-black/60 uppercase tracking-widest leading-none">Basic Pokémon</span>
-            <span className="text-md font-cartoon uppercase text-black tracking-wide mt-0.5">{pokemon.name}</span>
+        <div className="flex justify-between items-center px-0.5 border-b border-white/5 pb-2">
+          <div className="flex flex-col">
+            <span className="text-[7.5px] font-mono text-slate-500 uppercase tracking-widest leading-none">Basic Card NFT</span>
+            <span className="text-sm font-display font-extrabold uppercase text-slate-100 tracking-wide mt-1.5">{pokemon.name}</span>
           </div>
           <div className="flex items-center gap-1 shrink-0">
-            <span className="text-[11px] font-retro text-red-650">HP</span>
-            <span className="text-base font-cartoon text-red-650 leading-none">{pokemon.maxHp}</span>
-            <span className="text-base -mt-1 inline-block shrink-0">{theme.elementSymbol}</span>
+            <span className="text-[9px] font-mono text-rose-500 font-bold">HP</span>
+            <span className="text-md font-mono font-black text-rose-500 leading-none">{pokemon.maxHp}</span>
+            <span className="text-sm -mt-0.5 inline-block shrink-0">{theme.elementSymbol}</span>
           </div>
         </div>
 
         {/* Card Illustration Framed Area */}
-        <div className={`w-full aspect-[4/3] rounded-lg border-2 border-[#D97706] bg-gradient-to-b ${theme.gradientBg} relative p-1.5 shadow-inner overflow-hidden flex items-center justify-center`}>
+        <div className="w-full aspect-[4/3] rounded-2xl border border-white/5 bg-gradient-to-b from-slate-950/90 to-slate-900/80 relative p-1.5 shadow-inner overflow-hidden flex items-center justify-center">
           {/* Decorative artwork sparkles */}
-          <div className="absolute inset-0 bg-radial-gradient-dust pointer-events-none opacity-25" />
+          <div className="absolute inset-0 bg-radial-gradient-dust pointer-events-none opacity-20" />
           
-          <div className="absolute top-1.5 right-1.5 flex gap-1">
-            <Sparkles className="w-3.5 h-3.5 text-white animate-spin opacity-50 duration-5000" />
+          <div className="absolute top-2 right-2 flex gap-1 z-20">
+            <Sparkles className="w-3.5 h-3.5 text-white/40 animate-pulse duration-3000" />
           </div>
 
           {/* Dynamic Poke Avatar Ring & Real Image representation */}
           <div className="absolute inset-0 flex items-center justify-center">
             {/* Glow backing circle */}
             <div 
-              className="w-20 h-20 rounded-full opacity-50 blur-lg animate-pulse absolute"
+              className="w-24 h-24 rounded-full opacity-20 blur-xl animate-pulse absolute"
               style={{ backgroundColor: pokemon.color }}
             />
             
-            {/* The real, high-res Pokémon artwork */}
+            {/* The real, high-res artwork */}
             <img 
               src={pokemon.imageUrl} 
               alt={pokemon.name} 
-              className="w-[110px] h-[110px] object-contain filter drop-shadow-[0_6px_10px_rgba(0,0,0,0.4)] z-10 transform group-hover:scale-115 group-hover:-rotate-2 transition-all duration-500 select-none pointer-events-none"
+              className="w-[105px] h-[105px] object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] z-10 transform group-hover:scale-110 group-hover:-rotate-1 transition-all duration-500 select-none pointer-events-none"
               referrerPolicy="no-referrer"
             />
             
             {/* Element watermark badge */}
-            <span className="absolute bottom-1.5 right-2 text-sm select-none opacity-30 font-mono font-black">{theme.elementSymbol}</span>
+            <span className="absolute bottom-2 right-2 text-md select-none opacity-10 font-mono font-black">{theme.elementSymbol}</span>
           </div>
 
-          {/* Holographic light bands */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1500" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1500" />
         </div>
 
         {/* Small stats description tape */}
-        <div className="bg-[#FEF3C7] border border-[#F59E0B] rounded px-1.5 py-0.5 text-[7.5px] font-mono text-amber-950 flex justify-between items-center font-semibold shadow-sm uppercase tracking-wide">
-          <span>{theme.typeLabel} Pokémon</span>
-          <span>Attack: {pokemon.attack}</span>
-          <span>Speed: {pokemon.speed}</span>
+        <div className="bg-slate-950/80 border border-white/5 rounded-xl px-2.5 py-1 text-[8px] font-mono text-slate-400 flex justify-between items-center shadow-inner font-medium uppercase tracking-wider">
+          <span className={theme.accentColor}>{theme.typeLabel} Type</span>
+          <span className="text-slate-500">•</span>
+          <span>Atk: {pokemon.attack}</span>
+          <span className="text-slate-500">•</span>
+          <span>Spd: {pokemon.speed}</span>
         </div>
 
         {/* Attacks list and move abilities */}
-        <div className="flex flex-col gap-1.5 py-1 text-slate-900">
+        <div className="flex flex-col gap-2 py-1 text-slate-300">
           
           {/* Quick attack row */}
-          <div className="flex items-start justify-between border-b border-black/5 pb-1">
-            <div className="flex items-start gap-1 max-w-[85%]">
+          <div className="flex items-start justify-between border-b border-white/5 pb-1">
+            <div className="flex items-start gap-2 max-w-[85%]">
               <div className="flex gap-0.5 shrink-0 mt-0.5">
                 {getEnergyBadge(pokemon.type)}
               </div>
-              <div>
-                <span className="text-[10px] font-bold text-black font-sans leading-none block">{pokemon.moves.quick.name}</span>
-                <span className="text-[7.5px] leading-tight text-slate-800 line-clamp-1 block">A fast, low-cooldown striking blow.</span>
+              <div className="text-left">
+                <span className="text-[10px] font-bold text-slate-200 block font-sans leading-none">{pokemon.moves.quick.name}</span>
+                <span className="text-[8px] leading-tight text-slate-500 line-clamp-1 block mt-0.5">Swift striking blow. Cooldown critical.</span>
               </div>
             </div>
-            <span className="text-[10px] font-black font-mono text-black shrink-0">{pokemon.moves.quick.damage}</span>
+            <span className="text-[10px] font-mono font-bold text-slate-250 mt-0.5">{pokemon.moves.quick.damage}</span>
           </div>
 
           {/* Heavy attack row */}
-          <div className="flex items-start justify-between border-b border-black/5 pb-1">
-            <div className="flex items-start gap-1 max-w-[85%]">
+          <div className="flex items-start justify-between border-b border-white/5 pb-1">
+            <div className="flex items-start gap-2 max-w-[85%]">
               <div className="flex gap-0.5 shrink-0 mt-0.5">
                 {getEnergyBadge(pokemon.type)}
                 {getEnergyBadge('Normal')}
               </div>
-              <div>
-                <span className="text-[10px] font-bold text-black font-sans leading-none block">{pokemon.moves.heavy.name}</span>
-                <span className="text-[7.5px] leading-tight text-slate-800 line-clamp-1 block">A high impact strike that pushes the foe back.</span>
+              <div className="text-left">
+                <span className="text-[10px] font-bold text-slate-200 block font-sans leading-none">{pokemon.moves.heavy.name}</span>
+                <span className="text-[8px] leading-tight text-slate-500 line-clamp-1 block mt-0.5">High impact kinetic pushback strike.</span>
               </div>
             </div>
-            <span className="text-[10px] font-black font-mono text-black shrink-0">{pokemon.moves.heavy.damage}</span>
+            <span className="text-[10px] font-mono font-bold text-slate-250 mt-0.5">{pokemon.moves.heavy.damage}</span>
           </div>
 
           {/* Special action / Projectile row */}
-          <div className="flex items-start justify-between border-b border-black/10 pb-1">
-            <div className="flex items-start gap-1 max-w-[85%]">
+          <div className="flex items-start justify-between border-b border-white/5 pb-1">
+            <div className="flex items-start gap-2 max-w-[85%]">
               <div className="flex gap-0.5 shrink-0 mt-0.5">
                 {getEnergyBadge(pokemon.type)}
                 {getEnergyBadge(pokemon.type)}
               </div>
-              <div>
-                <span className="text-[10px] font-bold text-black font-sans leading-none block flex items-center gap-1.5">
+              <div className="text-left">
+                <span className="text-[10px] font-bold text-slate-200 block font-sans leading-none flex items-center gap-1.5">
                   {pokemon.moves.special.name}
-                  <span className="text-[7px] text-blue-800 bg-blue-100 border border-blue-400 font-mono px-1 rounded-sm leading-none shrink-0 uppercase tracking-widest">20 EN</span>
+                  <span className="text-[7.5px] text-blue-400 bg-blue-500/10 border border-blue-500/30 font-mono px-1 rounded-sm leading-none shrink-0 uppercase tracking-widest">20 EN</span>
                 </span>
-                <span className="text-[7.5px] leading-tight text-slate-800 line-clamp-1 block">Spawns a dynamic ranged energy bullet.</span>
+                <span className="text-[8px] leading-tight text-slate-500 line-clamp-1 block mt-0.5">Spawns ranged energetic bullet sphere.</span>
               </div>
             </div>
-            <span className="text-[10px] font-black font-mono text-black shrink-0">{pokemon.moves.special.damage}</span>
+            <span className="text-[10px] font-mono font-bold text-slate-250 mt-0.5">{pokemon.moves.special.damage}</span>
           </div>
 
           {/* Ultimate Move Box */}
-          <div className="bg-amber-100/70 border border-amber-600/35 rounded-lg p-1 text-[9px] shadow-sm">
+          <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-white/5 rounded-xl p-2.5 mt-0.5 shadow-md">
             <div className="flex justify-between items-center leading-none">
-              <span className="font-sans font-black text-amber-950 uppercase flex items-center gap-1 tracking-tight">
-                <Sparkles className="w-2.5 h-2.5 text-amber-500 animate-bounce" /> {pokemon.moves.ultimate.name}
+              <span className="font-sans font-bold text-slate-200 uppercase flex items-center gap-1.5 text-[9px] tracking-wider">
+                <Star className="w-3 h-3 text-yellow-400 animate-pulse" /> {pokemon.moves.ultimate.name}
               </span>
-              <span className="font-mono text-[7px] font-black text-amber-800 animate-pulse bg-amber-200/50 px-1 rounded-sm border border-amber-500/20 uppercase tracking-wider">100% ULTI</span>
-              <span className="font-mono font-black text-orange-700 leading-none">{pokemon.moves.ultimate.damage}</span>
+              <span className="font-mono text-[7px] font-bold text-yellow-400 animate-pulse bg-yellow-400/10 px-1.5 py-0.5 rounded-sm border border-yellow-400/20 uppercase tracking-widest">ULTI READY</span>
+              <span className="font-mono font-bold text-yellow-400 leading-none text-xs">{pokemon.moves.ultimate.damage}</span>
             </div>
           </div>
 
@@ -285,20 +269,20 @@ export default function PokemonCard({ pokemon, label, badgeColor = 'bg-amber-400
       </div>
 
       {/* Card authentic footer stats: Weakness, Resistance, Retreat Cost */}
-      <div className="border-t border-black/25 pt-1.5 flex justify-between text-[7px] font-mono leading-none tracking-tight text-black/70 font-semibold px-1">
+      <div className="border-t border-white/5 pt-3 flex justify-between text-[7.5px] font-mono leading-none tracking-wider text-slate-500 font-semibold px-0.5 mt-1">
         <div>
-          <span>weakness</span>
-          <span className="block font-bold text-red-800 text-[8px] mt-0.5 uppercase">{theme.weakness}</span>
+          <span>WEAKNESS</span>
+          <span className="block font-bold text-red-500 text-[8px] mt-1.5 uppercase">{theme.weakness}</span>
         </div>
         <div>
-          <span>resistance</span>
-          <span className="block font-bold text-blue-800 text-[8px] mt-0.5 uppercase">{theme.resistance}</span>
+          <span>RESISTANCE</span>
+          <span className="block font-bold text-blue-400 text-[8px] mt-1.5 uppercase">{theme.resistance}</span>
         </div>
         <div>
-          <span>retreat cost</span>
-          <span className="flex gap-0.5 mt-0.5">
+          <span>RETREAT COST</span>
+          <span className="flex gap-1 mt-1">
             {Array.from({ length: theme.retreat }).map((_, i) => (
-              <span key={i} className="w-1.5 h-1.5 rounded-full bg-slate-500/50 border border-slate-700/60 block" />
+              <span key={i} className="w-1.5 h-1.5 rounded-full bg-slate-700 border border-slate-600 block" />
             ))}
           </span>
         </div>
