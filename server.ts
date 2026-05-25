@@ -9,13 +9,29 @@ async function startServer() {
   const PORT = 3000;
   const httpServer = createHttpServer(app);
   
+  // Enable absolute dynamic CORS on the Express app for all incoming routes and preflight requests
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+    } else {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+    }
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, content-type, Authorization");
+    
+    if (req.method === "OPTIONS") {
+      res.sendStatus(200);
+    } else {
+      next();
+    }
+  });
+
   // Set up socket.io with the HTTP server
   const io = new SocketServer(httpServer, {
     cors: {
-      origin: (origin, callback) => {
-        // Return true/dynamically echo origin to sustain credential transfer
-        callback(null, origin || "*");
-      },
+      origin: true,
       credentials: true,
       methods: ["GET", "POST"]
     }
