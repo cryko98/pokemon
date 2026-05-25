@@ -27,6 +27,8 @@ export interface PokemonCharacter {
   };
   description: string;
   descriptionHu: string;
+  abilityName?: string;
+  abilityDesc?: string;
   nativelyFacesRight?: boolean;
   isSecret?: boolean;
 }

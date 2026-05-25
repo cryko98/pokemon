@@ -197,13 +197,13 @@ export const BOOSTER_SECRET_POKEMONS: PokemonCharacter[] = [
     isSecret: true,
     imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/384.png',
     description: 'A legendary dragon of the ozone layer. Devastates the battlefield with stellar aerial dragon claws and hurricanes.',
-    descriptionHu: 'Egy legendás sárkány az ózonrétegből. Csillagközi sárkánykarmokkal és pusztító hurrikánokkal tarolja le a harcteret.',
+    descriptionHu: 'A legendary dragon of the ozone layer. Devastates the battlefield with stellar aerial dragon claws and hurricanes.',
     nativelyFacesRight: true,
     moves: {
-      quick: { name: 'Dragon Claw', nameHu: 'Sárkánykarom', damage: 12, energyCost: 0, cooldown: 18 },
-      heavy: { name: 'Extreme Speed', nameHu: 'Szélső Sebesség', damage: 22, energyCost: 0, cooldown: 35 },
-      special: { name: 'Dragon Pulse', nameHu: 'Sárkány Hullám', damage: 32, energyCost: 25, cooldown: 55 },
-      ultimate: { name: 'Draco Meteor', nameHu: 'Sárkány Meteor', damage: 72, energyCost: 100, cooldown: 140 }
+      quick: { name: 'Dragon Claw', nameHu: 'Dragon Claw', damage: 12, energyCost: 0, cooldown: 18 },
+      heavy: { name: 'Extreme Speed', nameHu: 'Extreme Speed', damage: 22, energyCost: 0, cooldown: 35 },
+      special: { name: 'Dragon Pulse', nameHu: 'Dragon Pulse', damage: 32, energyCost: 25, cooldown: 55 },
+      ultimate: { name: 'Draco Meteor', nameHu: 'Draco Meteor', damage: 72, energyCost: 100, cooldown: 140 }
     }
   },
   {
@@ -221,13 +221,13 @@ export const BOOSTER_SECRET_POKEMONS: PokemonCharacter[] = [
     isSecret: true,
     imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png',
     description: 'A mythical Pokémon said to possess the genetic composition of all Pokémon. Uses beautiful psychic mirror fields.',
-    descriptionHu: 'Egy mitikus Pokémon, amely állítólag minden Pokémon genetikai kódját hordozza. Csodás pszichikus tükörmezőket használ.',
+    descriptionHu: 'A mythical Pokémon said to possess the genetic composition of all Pokémon. Uses beautiful psychic mirror fields.',
     nativelyFacesRight: true,
     moves: {
-      quick: { name: 'Pound Strike', nameHu: 'Lökés', damage: 10, energyCost: 0, cooldown: 16 },
-      heavy: { name: 'Mega Punch', nameHu: 'Mega Ütés', damage: 19, energyCost: 0, cooldown: 32 },
-      special: { name: 'Psychic Spark', nameHu: 'Pszichikus Szikra', damage: 26, energyCost: 20, cooldown: 48 },
-      ultimate: { name: 'Genesis Nova', nameHu: 'Genezis Nova', damage: 65, energyCost: 100, cooldown: 120 }
+      quick: { name: 'Pound Strike', nameHu: 'Pound Strike', damage: 10, energyCost: 0, cooldown: 16 },
+      heavy: { name: 'Mega Punch', nameHu: 'Mega Punch', damage: 19, energyCost: 0, cooldown: 32 },
+      special: { name: 'Psychic Spark', nameHu: 'Psychic Spark', damage: 26, energyCost: 20, cooldown: 48 },
+      ultimate: { name: 'Genesis Nova', nameHu: 'Genesis Nova', damage: 65, energyCost: 100, cooldown: 120 }
     }
   },
   {
@@ -245,12 +245,12 @@ export const BOOSTER_SECRET_POKEMONS: PokemonCharacter[] = [
     isSecret: true,
     imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/443.png',
     description: 'It can fly at sonic speeds when folded. Its razor-sharp fins and rough skin slice through any defenses.',
-    descriptionHu: 'Összehajtott testtel képes hangsebességgel repülni. Borotvaéles uszonyai és durva bőre bármilyen védelmen áthatol.',
+    descriptionHu: 'It can fly at sonic speeds when folded. Its razor-sharp fins and rough skin slice through any defenses.',
     moves: {
-      quick: { name: 'Dual Chop', nameHu: 'Dupla Vágás', damage: 11, energyCost: 0, cooldown: 20 },
-      heavy: { name: 'Dragon Rush', nameHu: 'Sárkány Roham', damage: 21, energyCost: 0, cooldown: 38 },
-      special: { name: 'Earthquake Rift', nameHu: 'Földrengés Rés', damage: 29, energyCost: 25, cooldown: 52 },
-      ultimate: { name: 'Outrage Rampage', nameHu: 'Dühöngő Tombolás', damage: 68, energyCost: 100, cooldown: 130 }
+      quick: { name: 'Dual Chop', nameHu: 'Dual Chop', damage: 11, energyCost: 0, cooldown: 20 },
+      heavy: { name: 'Dragon Rush', nameHu: 'Dragon Rush', damage: 21, energyCost: 0, cooldown: 38 },
+      special: { name: 'Earthquake Rift', nameHu: 'Earthquake Rift', damage: 29, energyCost: 25, cooldown: 52 },
+      ultimate: { name: 'Outrage Rampage', nameHu: 'Outrage Rampage', damage: 68, energyCost: 100, cooldown: 130 }
     }
   },
   {
@@ -268,12 +268,12 @@ export const BOOSTER_SECRET_POKEMONS: PokemonCharacter[] = [
     isSecret: true,
     imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/493.png',
     description: 'According to mythology, this Pokémon emerged before the universe existed. The mythical divine creator of all.',
-    descriptionHu: 'A mitológia szerint ez a Pokémon még az univerzum létezése előtt született. Minden létező mitikus isteni teremtője.',
+    descriptionHu: 'According to mythology, this Pokémon emerged before the universe existed. The mythical divine creator of all.',
     moves: {
-      quick: { name: 'Cosmic Slam', nameHu: 'Kozmikus Csapás', damage: 14, energyCost: 0, cooldown: 22 },
-      heavy: { name: 'Divine Charge', nameHu: 'Isteni Roham', damage: 24, energyCost: 0, cooldown: 40 },
-      special: { name: 'Judgement Beam', nameHu: 'Ítélet Sugár', damage: 34, energyCost: 30, cooldown: 58 },
-      ultimate: { name: 'Judgement Cosmic', nameHu: 'Kozmikus Ítélet', damage: 75, energyCost: 100, cooldown: 150 }
+      quick: { name: 'Cosmic Slam', nameHu: 'Cosmic Slam', damage: 14, energyCost: 0, cooldown: 22 },
+      heavy: { name: 'Divine Charge', nameHu: 'Divine Charge', damage: 24, energyCost: 0, cooldown: 40 },
+      special: { name: 'Judgement Beam', nameHu: 'Judgement Beam', damage: 34, energyCost: 30, cooldown: 58 },
+      ultimate: { name: 'Judgement Cosmic', nameHu: 'Judgement Cosmic', damage: 75, energyCost: 100, cooldown: 150 }
     }
   }
 ];
@@ -324,3 +324,71 @@ export const ARENAS: Arena[] = [
     description: 'A serene and lush woodland filled with wild grass and rustling leaves.'
   }
 ];
+
+const ABILITIES_MAPPING: { [id: string]: { name: string; desc: string } } = {
+  pikachu: {
+    name: "Static Acceleration",
+    desc: "When health drops below 50%, movement speed increases and electrical sparks paralyze enemies."
+  },
+  charizard: {
+    name: "Blaze Rage",
+    desc: "Fire-based strikes deal 20% critical heat damage."
+  },
+  blastoise: {
+    name: "Steel Shell",
+    desc: "Reduces all incoming direct damage by a solid 15% armor mitigation."
+  },
+  gengar: {
+    name: "Shadow Curse",
+    desc: "Lifesteals and regenerates health upon executing successful attacks."
+  },
+  lucario: {
+    name: "Aura Concentration",
+    desc: "Passively generates and recovers special combat move energy 25% faster."
+  },
+  greninja: {
+    name: "Ninja Acrobatics",
+    desc: "Enables elegant double-jumping to dodge hostile projectiles on the field."
+  },
+  mewtwo: {
+    name: "Telekinetic Shield",
+    desc: "Periodically spawns a psychic barrier to completely deflect incoming projectiles."
+  },
+  snorlax: {
+    name: "Thick Fat",
+    desc: "Immune to lightweight displacement knockbacks, starts with boosted max HP."
+  },
+  rayquaza: {
+    name: "Ozone Tempest",
+    desc: "Aerial and jump strikes inflict 30% more destructive force."
+  },
+  mew: {
+    name: "Genesis DNA",
+    desc: "Reduces special energy costs by 30% and passively heals over time."
+  },
+  garchomp: {
+    name: "Rough Skin",
+    desc: "Automatically reflects 15% of received contact damage back onto attackers."
+  },
+  arceus: {
+    name: "Divine Protection",
+    desc: "Completely nullifies the first incoming strike and begins battle with 50% energy."
+  }
+};
+
+POKEMONS.forEach(poke => {
+  const meta = ABILITIES_MAPPING[poke.id];
+  if (meta) {
+    poke.abilityName = meta.name;
+    poke.abilityDesc = meta.desc;
+  }
+});
+
+BOOSTER_SECRET_POKEMONS.forEach(poke => {
+  const meta = ABILITIES_MAPPING[poke.id];
+  if (meta) {
+    poke.abilityName = meta.name;
+    poke.abilityDesc = meta.desc;
+  }
+});
+

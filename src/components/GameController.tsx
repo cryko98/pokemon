@@ -11,6 +11,10 @@ interface GameControllerProps {
   selectedArena: Arena;
   onExitToMenu: () => void;
   onSelectDifferentCharacters: () => void;
+  isMultiplayer?: boolean;
+  roomId?: string | null;
+  multiplayerSide?: 'player' | 'cpu';
+  clientSocket?: any;
 }
 
 export default function GameController({
@@ -18,7 +22,11 @@ export default function GameController({
   cpuPokemon,
   selectedArena,
   onExitToMenu,
-  onSelectDifferentCharacters
+  onSelectDifferentCharacters,
+  isMultiplayer = false,
+  roomId = null,
+  multiplayerSide = 'player',
+  clientSocket = null
 }: GameControllerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -214,14 +222,14 @@ export default function GameController({
   };
 
   // Combat collision: Check proximity and apply hit mechanics
-  const triggerMeleeAttack = useCallback((attacker: Fighter, defender: Fighter, attackType: 'quick' | 'heavy' | 'ultimate') => {
+  const triggerMeleeAttack = useCallback((attacker: Fighter, defender: Fighter, attackType: 'quick' | 'heavy' | 'ultimate', isReplicated: boolean = false) => {
     const isPlayer = attacker.id === 'player';
     const pokeData = isPlayer ? playerPokemon : cpuPokemon;
     const move = attackType === 'quick' 
       ? pokeData.moves.quick 
       : attackType === 'heavy' 
-        ? pokeData.moves.heavy 
-        : pokeData.moves.ultimate;
+      ? pokeData.moves.heavy 
+      : pokeData.moves.ultimate;
 
     // Range calculations depending on direction
     const range = attackType === 'quick' ? 55 : attackType === 'heavy' ? 70 : 85;
@@ -233,7 +241,7 @@ export default function GameController({
     const inRange = Math.abs(dx) <= range && dy < 60 && correctDirection;
 
     // Deduct ultimate energy cost if ultimate is clicked
-    if (attackType === 'ultimate') {
+    if (attackType === 'ultimate' && !isReplicated) {
       attacker.energy = 0;
       attacker.ultimateReady = false;
       if (isPlayer) setP1Energy(0);
@@ -246,26 +254,87 @@ export default function GameController({
     createExplosion(windX, windY, attacker.id === 'player' ? playerPokemon.color : cpuPokemon.color, 6, 2.5);
 
     if (inRange) {
+      const defenderPoke = attacker.id === 'player' ? cpuPokemon : playerPokemon;
+      
       // Calculate blocking status of victim
       const isDefBlocked = defender.isBlocking && defender.dir !== attacker.dir; 
       let finalDamage = Math.round(move.damage * (1 + (pokeData.attack - 15) * 0.015));
+      
+      // Pikachu Spark Passive: 20% extra damage if defender is hit
+      if (pokeData.id === 'pikachu' && Math.random() < 0.2) {
+        finalDamage = Math.round(finalDamage * 1.2);
+        addCombatText('SPARK CRIT! ⭐', attacker.x, attacker.y - 70, '#FACC15', 20);
+      }
+
+      // Rayquaza Ozone Overdrive Passive: Dealt 30% more damage if attacker is mid-air
+      if (pokeData.id === 'rayquaza' && !attacker.isGrounded) {
+        finalDamage = Math.round(finalDamage * 1.3);
+        addCombatText('OZONE STRIKE! 🌀', attacker.x, attacker.y - 70, '#0D9488', 20);
+      }
+
+      // Charizard Burn Fury Passive: 20% more damage if his HP is below 50%
+      if (pokeData.id === 'charizard' && attacker.hp < attacker.maxHp * 0.5) {
+        finalDamage = Math.round(finalDamage * 1.25);
+        addCombatText('BURN FURY! 🔥', attacker.x, attacker.y - 70, '#F97316', 21);
+      }
+
+      // Blastoise Steel Shell Passive: absorbs 15% of all received generic damage
+      if (defenderPoke.id === 'blastoise') {
+        finalDamage = Math.round(finalDamage * 0.85);
+      }
+
+      // Arceus Divine Aura: 20% chance of complete deflection/invulnerability
+      let isDivineDeflected = false;
+      if (defenderPoke.id === 'arceus' && Math.random() < 0.2) {
+        isDivineDeflected = true;
+        finalDamage = 0;
+      }
+
       if (isDefBlocked) {
         finalDamage = Math.round(finalDamage * 0.15); // block absorbs 85% damage!
       }
 
-      // Check for Gengar's Dream Eater ultimate lifesteal!
-    // Helper: Trigger Gengar lifesteal or other texts in English
-    if (attackType === 'ultimate' && pokeData.id === 'gengar') {
-      const hSteal = Math.round(finalDamage * 0.4);
-      attacker.hp = Math.min(attacker.maxHp, attacker.hp + hSteal);
-      if (isPlayer) setP1Hp(attacker.hp);
-      else setCpuHp(attacker.hp);
-      addCombatText(`STEAL +${hSteal}`, attacker.x, attacker.y - 60, '#A78BFA', 22);
-    }
+      // Check for Gengar's Dream Eater ultimate lifesteal! (and shadow lifesteal passive on regular hits too)
+      if (pokeData.id === 'gengar') {
+        const stealPct = attackType === 'ultimate' ? 0.45 : 0.15;
+        const hSteal = Math.round(finalDamage * stealPct);
+        if (hSteal > 0) {
+          attacker.hp = Math.min(attacker.maxHp, attacker.hp + hSteal);
+          if (isPlayer) setP1Hp(attacker.hp);
+          else setCpuHp(attacker.hp);
+          addCombatText(`DRAIN +${hSteal} ❤️`, attacker.x, attacker.y - 60, '#A78BFA', 20);
+        }
+      }
+
+      // Garchomp Rough Skin Passive: Rebounds 15% physical damage back
+      if (defenderPoke.id === 'garchomp' && finalDamage > 0) {
+        const rebound = Math.round(finalDamage * 0.15);
+        if (rebound > 0) {
+          attacker.hp = Math.max(0, attacker.hp - rebound);
+          if (isPlayer) setP1Hp(attacker.hp);
+          else setCpuHp(attacker.hp);
+          addCombatText(`REBOUND -${rebound} 💥`, attacker.x, attacker.y - 80, '#EF4444', 18);
+        }
+      }
+
+      // Mew DNA Genesis: 5% passive heal per landed hit
+      if (pokeData.id === 'mew') {
+        const hHeal = Math.round(attacker.maxHp * 0.04);
+        attacker.hp = Math.min(attacker.maxHp, attacker.hp + hHeal);
+        if (isPlayer) setP1Hp(attacker.hp);
+        else setCpuHp(attacker.hp);
+        addCombatText(`REGEN +${hHeal} ✨`, attacker.x, attacker.y - 50, '#EC4899', 19);
+      }
 
       // Apply damage
-      defender.hp = Math.max(0, defender.hp - finalDamage);
-      (defender.id === 'player') ? setP1Hp(defender.hp) : setCpuHp(defender.hp);
+      if (isDivineDeflected) {
+        addCombatText('DIVINE BLOCK! 🛡️', defender.x, defender.y - 65, '#FEF08A', 22);
+        createExplosion(defender.x, defender.y - 30, '#FEF08A', 14, 3);
+        audio.playBlock();
+      } else {
+        defender.hp = Math.max(0, defender.hp - finalDamage);
+        (defender.id === 'player') ? setP1Hp(defender.hp) : setCpuHp(defender.hp);
+      }
 
       // Trigger screen shake & Sound effects
       screenShakeRef.current = attackType === 'quick' ? 8 : attackType === 'heavy' ? 16 : 28;
@@ -308,9 +377,11 @@ export default function GameController({
       }
 
       // Build energy on successful landing
-      attacker.energy = Math.min(attacker.maxEnergy, attacker.energy + (attackType === 'quick' ? 10 : 20));
-      if (isPlayer) setP1Energy(attacker.energy);
-      else setCpuEnergy(attacker.energy);
+      if (!isReplicated) {
+        attacker.energy = Math.min(attacker.maxEnergy, attacker.energy + (attackType === 'quick' ? 10 : 20));
+        if (isPlayer) setP1Energy(attacker.energy);
+        else setCpuEnergy(attacker.energy);
+      }
 
     } else {
       // Whiff sound or air hit effect
@@ -318,20 +389,22 @@ export default function GameController({
   }, [playerPokemon, cpuPokemon]);
 
   // Handle firing projectile
-  const fireSpecialProjectile = useCallback((attacker: Fighter, defender: Fighter) => {
+  const fireSpecialProjectile = useCallback((attacker: Fighter, defender: Fighter, isReplicated: boolean = false) => {
     const isPlayer = attacker.id === 'player';
     const pokeData = isPlayer ? playerPokemon : cpuPokemon;
     const move = pokeData.moves.special;
 
-    if (attacker.energy < move.energyCost) {
-      if (isPlayer) addCombatText('No energy!', attacker.x, attacker.y - 50, '#EF4444', 16);
+    if (!isReplicated && attacker.energy < move.energyCost) {
+      if (isPlayer) addCombatText('NO POWER! ⚡', attacker.x, attacker.y - 50, '#EF4444', 16);
       return;
     }
 
-    // Deduct energy
-    attacker.energy -= move.energyCost;
-    if (isPlayer) setP1Energy(attacker.energy);
-    else setCpuEnergy(attacker.energy);
+    if (!isReplicated) {
+      // Deduct energy
+      attacker.energy -= move.energyCost;
+      if (isPlayer) setP1Energy(attacker.energy);
+      else setCpuEnergy(attacker.energy);
+    }
 
     // Play laser/special audio track
     audio.playSpecial();
@@ -369,12 +442,19 @@ export default function GameController({
   }, [playerPokemon, cpuPokemon]);
 
   // Execute ultimate spells
-  const executeUltimateMove = useCallback((attacker: Fighter, defender: Fighter) => {
+  const executeUltimateMove = useCallback((attacker: Fighter, defender: Fighter, isReplicated: boolean = false) => {
     const isPlayer = attacker.id === 'player';
     const pokeData = isPlayer ? playerPokemon : cpuPokemon;
 
     // Check energy
-    if (attacker.energy < 100) return;
+    if (!isReplicated && attacker.energy < 100) return;
+
+    if (!isReplicated) {
+      attacker.energy = 0;
+      attacker.ultimateReady = false;
+      if (isPlayer) setP1Energy(0);
+      else setCpuEnergy(0);
+    }
 
     audio.playUltimate();
     
@@ -396,7 +476,7 @@ export default function GameController({
       attacker.vx = attacker.dir * 32;
       setTimeout(() => {
         // Evaluate close hitting impact
-        triggerMeleeAttack(attacker, defender, 'ultimate');
+        triggerMeleeAttack(attacker, defender, 'ultimate', isReplicated);
       }, 100);
     } else {
       // Fire generic heavy projectile tracking the defender after short lag
@@ -423,6 +503,74 @@ export default function GameController({
       }, 300);
     }
   }, [playerPokemon, cpuPokemon, triggerMeleeAttack]);
+
+  // Multiplayer real-time socket listeners
+  useEffect(() => {
+    if (!isMultiplayer || !clientSocket) return;
+
+    // Receive state synchronization from remote player
+    clientSocket.on('remote_state', (data: any) => {
+      // Check that it's the opposing side
+      if (data.side === multiplayerSide) return;
+
+      const opposingRef = data.side === 'player' ? p1Ref : cpuRef;
+      const f = opposingRef.current;
+      if (!f) return;
+
+      f.x = data.x;
+      f.y = data.y;
+      f.vx = data.vx;
+      f.vy = data.vy;
+      f.hp = data.hp;
+      f.energy = data.energy;
+      f.state = data.state;
+      f.stateTimer = data.stateTimer;
+      f.isBlocking = data.isBlocking;
+      f.dir = data.dir;
+      f.isGrounded = data.isGrounded;
+
+      // Keep HP and Energy HUD updated in real-time
+      if (data.side === 'player') {
+        setP1Hp(data.hp);
+        setP1Energy(data.energy);
+      } else {
+        setCpuHp(data.hp);
+        setCpuEnergy(data.energy);
+      }
+    });
+
+    // Receive exact actions triggered by remote player
+    clientSocket.on('remote_action_triggered', (data: any) => {
+      if (data.side === multiplayerSide) return;
+
+      const { action, payload } = data;
+      const p1 = p1Ref.current;
+      const cpu = cpuRef.current;
+
+      if (action === 'melee_hit') {
+        const attacker = payload.attackerId === 'player' ? p1 : cpu;
+        const defender = payload.attackerId === 'player' ? cpu : p1;
+        attacker.state = payload.attackType === 'quick' ? 'attack_quick' : 'attack_heavy';
+        attacker.stateTimer = payload.attackType === 'quick' ? 18 : 32;
+        triggerMeleeAttack(attacker, defender, payload.attackType, true);
+      } 
+      else if (action === 'spawn_projectile') {
+        const attacker = payload.ownerId === 'player' ? p1 : cpu;
+        const defender = payload.ownerId === 'player' ? cpu : p1;
+        fireSpecialProjectile(attacker, defender, true); // true = bypass replicated energy deduct
+      } 
+      else if (action === 'execute_ultimate') {
+        const attacker = payload.ownerId === 'player' ? p1 : cpu;
+        const defender = payload.ownerId === 'player' ? cpu : p1;
+        executeUltimateMove(attacker, defender, true); // true = replicated ultimate pose
+      }
+    });
+
+    return () => {
+      clientSocket.off('remote_state');
+      clientSocket.off('remote_action_triggered');
+    };
+  }, [isMultiplayer, clientSocket, multiplayerSide, triggerMeleeAttack, fireSpecialProjectile, executeUltimateMove]);
 
   // Setup/Reset a high stakes battle round
   const resetRound = useCallback((round: number) => {
@@ -505,34 +653,45 @@ export default function GameController({
 
       if (roundOver || matchOver) return;
 
+      const active = isMultiplayer ? (multiplayerSide === 'player' ? p1Ref.current : cpuRef.current) : p1Ref.current;
+      const target = isMultiplayer ? (multiplayerSide === 'player' ? cpuRef.current : p1Ref.current) : cpuRef.current;
+
       // Combat actions keys
       if (k === 'j' || e.key === '1') {
-        const p1 = p1Ref.current;
-        if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate') {
-          p1.state = 'attack_quick';
-          p1.stateTimer = 18; // 18 frames duration
+        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate') {
+          active.state = 'attack_quick';
+          active.stateTimer = 18; // 18 frames duration
           audio.playJump(); // Quick air swoosh
-          triggerMeleeAttack(p1, cpuRef.current, 'quick');
+          triggerMeleeAttack(active, target, 'quick');
+          if (isMultiplayer && clientSocket) {
+            clientSocket.emit('remote_action', { roomId, action: 'melee_hit', payload: { attackType: 'quick', attackerId: multiplayerSide } });
+          }
         }
       }
       else if (k === 'k' || e.key === '2') {
-        const p1 = p1Ref.current;
-        if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate') {
-          p1.state = 'attack_heavy';
-          p1.stateTimer = 32; // heavier swing
-          triggerMeleeAttack(p1, cpuRef.current, 'heavy');
+        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate') {
+          active.state = 'attack_heavy';
+          active.stateTimer = 32; // heavier swing
+          triggerMeleeAttack(active, target, 'heavy');
+          if (isMultiplayer && clientSocket) {
+            clientSocket.emit('remote_action', { roomId, action: 'melee_hit', payload: { attackType: 'heavy', attackerId: multiplayerSide } });
+          }
         }
       }
       else if (k === 'l' || e.key === '3') {
-        const p1 = p1Ref.current;
-        if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate') {
-          fireSpecialProjectile(p1, cpuRef.current);
+        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate') {
+          fireSpecialProjectile(active, target);
+          if (isMultiplayer && clientSocket) {
+            clientSocket.emit('remote_action', { roomId, action: 'spawn_projectile', payload: { ownerId: multiplayerSide } });
+          }
         }
       }
       else if (k === 'i' || e.key === '4') {
-        const p1 = p1Ref.current;
-        if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate' && p1.energy >= 100) {
-          executeUltimateMove(p1, cpuRef.current);
+        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate' && active.energy >= 100) {
+          executeUltimateMove(active, target);
+          if (isMultiplayer && clientSocket) {
+            clientSocket.emit('remote_action', { roomId, action: 'execute_ultimate', payload: { ownerId: multiplayerSide } });
+          }
         }
       }
     };
@@ -668,130 +827,162 @@ export default function GameController({
         determineRoundWinner();
       }
 
-      // Read player walk inputs
-      if (p1.state !== 'fainted' && p1.state !== 'hit' && !roundAnnouncement && !roundOver) {
+      // Read walk & jump inputs based on local active controller mapping
+      const activeFtr = isMultiplayer ? (multiplayerSide === 'player' ? p1 : cpu) : p1;
+      const remoteFtr = isMultiplayer ? (multiplayerSide === 'player' ? cpu : p1) : cpu;
+
+      if (activeFtr.state !== 'fainted' && activeFtr.state !== 'hit' && !roundAnnouncement && !roundOver) {
         // Horizontal Movement
         let isMoving = false;
         
         // Block condition (S or ArrowDown)
         if (keysRef.current['S'] || keysRef.current['s'] || keysRef.current['ArrowDown']) {
-          p1.isBlocking = true;
-          p1.vx = 0;
-          if (p1.isGrounded) p1.state = 'idle';
+          activeFtr.isBlocking = true;
+          activeFtr.vx = 0;
+          if (activeFtr.isGrounded) activeFtr.state = 'idle';
         } else {
-          p1.isBlocking = false;
+          activeFtr.isBlocking = false;
           
           if (keysRef.current['A'] || keysRef.current['a'] || keysRef.current['ArrowLeft']) {
-            p1.vx = -playerPokemon.speed;
-            p1.dir = -1;
+            const currentSpeed = isMultiplayer ? (multiplayerSide === 'player' ? playerPokemon.speed : cpuPokemon.speed) : playerPokemon.speed;
+            activeFtr.vx = -currentSpeed;
+            activeFtr.dir = -1;
             isMoving = true;
           } else if (keysRef.current['D'] || keysRef.current['d'] || keysRef.current['ArrowRight']) {
-            p1.vx = playerPokemon.speed;
-            p1.dir = 1;
+            const currentSpeed = isMultiplayer ? (multiplayerSide === 'player' ? playerPokemon.speed : cpuPokemon.speed) : playerPokemon.speed;
+            activeFtr.vx = currentSpeed;
+            activeFtr.dir = 1;
             isMoving = true;
           } else {
-            p1.vx = p1.vx * 0.76; // slide friction
+            activeFtr.vx = activeFtr.vx * 0.76; // slide friction
           }
 
           // State visual alignment
-          if (p1.isGrounded && p1.state !== 'attack_quick' && p1.state !== 'attack_heavy' && p1.state !== 'attack_special' && p1.state !== 'ultimate') {
-            p1.state = isMoving ? 'walk' : 'idle';
+          if (activeFtr.isGrounded && activeFtr.state !== 'attack_quick' && activeFtr.state !== 'attack_heavy' && activeFtr.state !== 'attack_special' && activeFtr.state !== 'ultimate') {
+            activeFtr.state = isMoving ? 'walk' : 'idle';
           }
         }
 
         // Jump condition (W, Space or ArrowUp)
-        if ((keysRef.current['W'] || keysRef.current['w'] || keysRef.current[' '] || keysRef.current['ArrowUp']) && p1.isGrounded) {
-          p1.vy = -12; // vertical force
-          p1.isGrounded = false;
-          p1.state = 'jump';
+        if ((keysRef.current['W'] || keysRef.current['w'] || keysRef.current[' '] || keysRef.current['ArrowUp']) && activeFtr.isGrounded) {
+          activeFtr.vy = -12; // vertical force
+          activeFtr.isGrounded = false;
+          activeFtr.state = 'jump';
           audio.playJump();
-          createExplosion(p1.x, p1.y, '#94A3B8', 5, 2); // dust plume
+          createExplosion(activeFtr.x, activeFtr.y, '#94A3B8', 5, 2); // dust plume
         }
       } else {
         // Friction when disabled/hit
-        p1.vx *= 0.85;
+        activeFtr.vx *= 0.85;
       }
 
-      // --- RIGHT-SIDE CPU AI INTELLIGENS MOVEMENT DECISION TREE --- (cpuRef)
-      if (cpu.state !== 'fainted' && cpu.state !== 'hit' && !roundAnnouncement && !roundOver) {
-        const dx = p1.x - cpu.x;
-        const dist = Math.abs(dx);
-        
-        // Align CPU direction to face player
-        cpu.dir = dx > 0 ? 1 : -1;
+      // If we are in multiplayer, emit active state to room on tick counts (every 2 frames is perfect to limit network overhead)
+      if (isMultiplayer && clientSocket && tickCount % 2 === 0) {
+        clientSocket.emit('sync_state', {
+          roomId,
+          side: multiplayerSide,
+          x: activeFtr.x,
+          y: activeFtr.y,
+          vx: activeFtr.vx,
+          vy: activeFtr.vy,
+          hp: activeFtr.hp,
+          energy: activeFtr.energy,
+          state: activeFtr.state,
+          stateTimer: activeFtr.stateTimer,
+          isBlocking: activeFtr.isBlocking,
+          dir: activeFtr.dir,
+          isGrounded: activeFtr.isGrounded
+        });
+      }
 
-        // Simple decision matrix based on time ticks and difficulty modifier
-        const updateRate = difficulty === 'easy' ? 40 : difficulty === 'normal' ? 24 : 12;
+      // Friction for the other fighter in remote mode if we aren't receiving packets, or let them decay state
+      if (isMultiplayer) {
+        // Remote fighter shouldn't do AI logic, but align their facing dir to target
+        remoteFtr.dir = (activeFtr.x - remoteFtr.x) > 0 ? 1 : -1;
+      }
 
-        if (tickCount % updateRate === 0) {
-          // AI Logic
-          if (dist > 280) {
-            // Far distance: run/advance towards competitor
-            cpu.vx = cpu.dir * cpuPokemon.speed * 0.95;
-            cpu.state = 'walk';
-            cpu.isBlocking = false;
+      // --- RIGHT-SIDE SINGLE PLAYER CPU AI INTELLIGENS MOVEMENT DECISION TREE --- (only when NOT in multiplayer)
+      if (!isMultiplayer) {
+        if (cpu.state !== 'fainted' && cpu.state !== 'hit' && !roundAnnouncement && !roundOver) {
+          const dx = p1.x - cpu.x;
+          const dist = Math.abs(dx);
+          
+          // Align CPU direction to face player
+          cpu.dir = dx > 0 ? 1 : -1;
 
-            // Occasional projectile shot
-            if (Math.random() > 0.65 && cpu.energy >= cpuPokemon.moves.special.energyCost) {
-              fireSpecialProjectile(cpu, p1);
-            }
-          } 
-          else if (dist < 70) {
-            // Extreme close range
-            cpu.vx = 0;
-            
-            // Check if player is attacking to activate smart defense block!
-            const playerAttacking = p1.state.includes('attack_') || p1.state === 'ultimate';
-            const blockChance = difficulty === 'easy' ? 0.28 : difficulty === 'normal' ? 0.62 : 0.82;
-            
-            if (playerAttacking && Math.random() < blockChance) {
-              // Activate Block Shield
-              cpu.isBlocking = true;
-              cpu.state = 'idle';
-            } else {
+          // Simple decision matrix based on time ticks and difficulty modifier
+          const updateRate = difficulty === 'easy' ? 40 : difficulty === 'normal' ? 24 : 12;
+
+          if (tickCount % updateRate === 0) {
+            // AI Logic
+            if (dist > 280) {
+              // Far distance: run/advance towards competitor
+              cpu.vx = cpu.dir * cpuPokemon.speed * 0.95;
+              cpu.state = 'walk';
               cpu.isBlocking = false;
-              // Attack selection: Ultimate > Special > Heavy > Quick
-              if (cpu.energy >= 100 && Math.random() > 0.2) {
-                executeUltimateMove(cpu, p1);
-              } else if (Math.random() > 0.65) {
-                cpu.state = 'attack_heavy';
-                cpu.stateTimer = 34;
-                triggerMeleeAttack(cpu, p1, 'heavy');
+
+              // Occasional projectile shot
+              if (Math.random() > 0.65 && cpu.energy >= cpuPokemon.moves.special.energyCost) {
+                fireSpecialProjectile(cpu, p1);
+              }
+            } 
+            else if (dist < 70) {
+              // Extreme close range
+              cpu.vx = 0;
+              
+              // Check if player is attacking to activate smart defense block!
+              const playerAttacking = p1.state.includes('attack_') || p1.state === 'ultimate';
+              const blockChance = difficulty === 'easy' ? 0.28 : difficulty === 'normal' ? 0.62 : 0.82;
+              
+              if (playerAttacking && Math.random() < blockChance) {
+                // Activate Block Shield
+                cpu.isBlocking = true;
+                cpu.state = 'idle';
               } else {
-                cpu.state = 'attack_quick';
-                cpu.stateTimer = 20;
-                triggerMeleeAttack(cpu, p1, 'quick');
+                cpu.isBlocking = false;
+                // Attack selection: Ultimate > Special > Heavy > Quick
+                if (cpu.energy >= 100 && Math.random() > 0.2) {
+                  executeUltimateMove(cpu, p1);
+                } else if (Math.random() > 0.65) {
+                  cpu.state = 'attack_heavy';
+                  cpu.stateTimer = 34;
+                  triggerMeleeAttack(cpu, p1, 'heavy');
+                } else {
+                  cpu.state = 'attack_quick';
+                  cpu.stateTimer = 20;
+                  triggerMeleeAttack(cpu, p1, 'quick');
+                }
+              }
+            } 
+            else {
+              // Mid distance
+              cpu.isBlocking = false;
+              
+              // Random walk back and forth
+              if (Math.random() > 0.5) {
+                cpu.vx = -cpu.dir * cpuPokemon.speed * 0.8;
+                cpu.state = 'walk';
+              } else {
+                cpu.vx = cpu.dir * cpuPokemon.speed * 0.8;
+                cpu.state = 'walk';
+              }
+
+              // Potential shoot or jump over incoming projectiles
+              const nearbyProjectile = projectilesRef.current.some(pr => pr.ownerId === 'player' && Math.abs(pr.x - cpu.x) < 160);
+              if (nearbyProjectile && cpu.isGrounded && Math.random() > 0.3) {
+                // Jump dodge!
+                cpu.vy = -11;
+                cpu.isGrounded = false;
+                cpu.state = 'jump';
+                audio.playJump();
+              } else if (Math.random() > 0.75 && cpu.energy >= cpuPokemon.moves.special.energyCost) {
+                fireSpecialProjectile(cpu, p1);
               }
             }
-          } 
-          else {
-            // Mid distance
-            cpu.isBlocking = false;
-            
-            // Random walk back and forth
-            if (Math.random() > 0.5) {
-              cpu.vx = -cpu.dir * cpuPokemon.speed * 0.8;
-              cpu.state = 'walk';
-            } else {
-              cpu.vx = cpu.dir * cpuPokemon.speed * 0.8;
-              cpu.state = 'walk';
-            }
-
-            // Potential shoot or jump over incoming projectiles
-            const nearbyProjectile = projectilesRef.current.some(pr => pr.ownerId === 'player' && Math.abs(pr.x - cpu.x) < 160);
-            if (nearbyProjectile && cpu.isGrounded && Math.random() > 0.3) {
-              // Jump dodge!
-              cpu.vy = -11;
-              cpu.isGrounded = false;
-              cpu.state = 'jump';
-              audio.playJump();
-            } else if (Math.random() > 0.75 && cpu.energy >= cpuPokemon.moves.special.energyCost) {
-              fireSpecialProjectile(cpu, p1);
-            }
           }
+        } else if (cpu.state === 'hit' || cpu.state === 'fainted') {
+          cpu.vx *= 0.85;
         }
-      } else if (cpu.state === 'hit' || cpu.state === 'fainted') {
-        cpu.vx *= 0.85;
       }
 
       // --- APPLIED PHYSICS FOR BOTH FIGHTERS ---

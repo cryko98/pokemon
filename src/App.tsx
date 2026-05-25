@@ -10,6 +10,13 @@ export default function App() {
   const [playerPokemon, setPlayerPokemon] = useState<PokemonCharacter | null>(null);
   const [cpuPokemon, setCpuPokemon] = useState<PokemonCharacter | null>(null);
   const [selectedArena, setSelectedArena] = useState<Arena | null>(null);
+  
+  // Multiplayer states
+  const [isMultiplayer, setIsMultiplayer] = useState<boolean>(false);
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const [multiplayerSide, setMultiplayerSide] = useState<'player' | 'cpu'>('player');
+  const [multiplayerSocket, setMultiplayerSocket] = useState<any>(null);
+
   const [copied, setCopied] = useState(false);
 
   const handleCopyCA = () => {
@@ -19,6 +26,29 @@ export default function App() {
   };
 
   const startCombat = (player: PokemonCharacter, cpu: PokemonCharacter, arena: Arena) => {
+    setIsMultiplayer(false);
+    setRoomId(null);
+    setMultiplayerSocket(null);
+
+    setPlayerPokemon(player);
+    setCpuPokemon(cpu);
+    setSelectedArena(arena);
+    setGameState('fighting');
+  };
+
+  const startMultiplayerCombat = (
+    player: PokemonCharacter,
+    cpu: PokemonCharacter,
+    arena: Arena,
+    roomCode: string,
+    sideCode: 'player' | 'cpu',
+    sock: any
+  ) => {
+    setIsMultiplayer(true);
+    setRoomId(roomCode);
+    setMultiplayerSide(sideCode);
+    setMultiplayerSocket(sock);
+
     setPlayerPokemon(player);
     setCpuPokemon(cpu);
     setSelectedArena(arena);
@@ -26,6 +56,10 @@ export default function App() {
   };
 
   const exitToMenu = () => {
+    if (multiplayerSocket) {
+      multiplayerSocket.emit('leave_room', { roomId });
+      multiplayerSocket.disconnect();
+    }
     setGameState('menu');
   };
 
@@ -67,7 +101,10 @@ export default function App() {
       {/* CORE DISPLAY ROUTER */}
       <main className={`w-full flex-1 flex flex-col items-center justify-center z-10 min-h-0 ${isFighting ? 'p-1 sm:p-2 h-full' : 'py-6'}`}>
         {gameState === 'menu' ? (
-          <MenuSelector onStartFight={startCombat} />
+          <MenuSelector 
+            onStartFight={startCombat} 
+            onStartMultiplayerFight={startMultiplayerCombat} 
+          />
         ) : (
           playerPokemon && cpuPokemon && selectedArena && (
             <GameController
@@ -76,6 +113,10 @@ export default function App() {
               selectedArena={selectedArena}
               onExitToMenu={exitToMenu}
               onSelectDifferentCharacters={() => setGameState('menu')}
+              isMultiplayer={isMultiplayer}
+              roomId={roomId}
+              multiplayerSide={multiplayerSide}
+              clientSocket={multiplayerSocket}
             />
           )
         )}

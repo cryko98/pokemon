@@ -50,6 +50,20 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
       // Randomly choose a Pokemon from the enriched booster pool (standard + secret exclusives!)
       const randomIndex = Math.floor(Math.random() * BOOSTER_POOL.length);
       const chosen = BOOSTER_POOL[randomIndex];
+      
+      // Persist unlocked secret card in local storage
+      if (chosen.isSecret) {
+        try {
+          const unlocked = JSON.parse(localStorage.getItem('unlocked_secrets') || '[]');
+          if (!unlocked.includes(chosen.id)) {
+            unlocked.push(chosen.id);
+            localStorage.setItem('unlocked_secrets', JSON.stringify(unlocked));
+          }
+        } catch (err) {
+          console.error("Local storage sync error:", err);
+        }
+      }
+
       setRevealedPokemon(chosen);
       setStep('revealed');
 
@@ -133,13 +147,13 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
           <div className="flex flex-col items-center">
             
             <div className="text-center mb-6">
-              <span className="inline-flex items-center gap-1 bg-yellow-400/10 text-yellow-400 text-[10px] font-mono font-black border border-yellow-400/20 px-3.5 py-1 rounded-full uppercase tracking-wider mb-2.5 animate-pulse">
+              <span className="inline-flex items-center gap-1 bg-yellow-400 border-2 border-black text-slate-950 text-xs font-cartoon px-3.5 py-1 rounded-full uppercase tracking-wider mb-2.5 shadow-sm">
                 🎁 STADIUM TOURNAMENT MYSTERY
               </span>
-              <h2 className="text-2xl md:text-3xl font-orbitron font-black text-white italic tracking-tight uppercase leading-none drop-shadow">
+              <h2 className="text-3xl font-cartoon text-yellow-400 uppercase tracking-wide drop-shadow-[2px_2px_0_#000]">
                 LEGENDARY BOOSTER PACK
               </h2>
-              <p className="text-[11px] font-mono text-slate-400 mt-1.5 max-w-xs mx-auto">
+              <p className="text-xs font-semibold text-slate-300 mt-1.5 max-w-xs mx-auto">
                 Rip open the booster foil, claim your randomized pocket fighter, and venture directly into live combat!
               </p>
             </div>
@@ -147,7 +161,7 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
             {/* Booster foil wrapping render */}
             <div 
               onClick={startRipping}
-              className={`relative w-[240px] h-[350px] bg-gradient-to-b from-slate-900 via-indigo-950 to-slate-950 border-4 border-amber-400/80 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] overflow-hidden cursor-pointer group flex flex-col justify-between p-4.5 select-none transition-all duration-300 hover:scale-105 ${
+              className={`relative w-[240px] h-[350px] bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-950 rounded-2xl p-5 select-none transition-all duration-300 hover:scale-105 cartoon-border cartoon-shadow cursor-pointer ${
                 shaking ? 'animate-[bounce_0.2s_infinite]' : 'hover:shadow-[0_0_35px_rgba(245,158,11,0.25)]'
               }`}
             >
@@ -155,23 +169,23 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[120%] transition-transform duration-1000 ease-out pointer-events-none" />
 
               {/* Decorative crimped jagged top/bottom booster rims */}
-              <div className="absolute top-0 inset-x-0 h-4 bg-amber-500/10 border-b border-dashed border-amber-400/30 flex justify-center items-center gap-0.5 pointer-events-none">
-                {Array.from({ length: 24 }).map((_, i) => (
-                  <div key={i} className="w-1 h-2 bg-amber-400/20 rounded-b-sm" />
+              <div className="absolute top-0 inset-x-0 h-4 bg-amber-500/10 border-b-2 border-dashed border-black flex justify-center items-center gap-0.5 pointer-events-none">
+                {Array.from({ length: 18 }).map((_, i) => (
+                  <div key={i} className="w-1.5 h-2.5 bg-yellow-400 border-r border-black" />
                 ))}
               </div>
 
-              <div className="absolute bottom-0 inset-x-0 h-4 bg-amber-500/10 border-t border-dashed border-amber-400/30 flex justify-center items-center gap-0.5 pointer-events-none">
-                {Array.from({ length: 24 }).map((_, i) => (
-                  <div key={i} className="w-1 h-2 bg-amber-400/20 rounded-t-sm" />
+              <div className="absolute bottom-0 inset-x-0 h-4 bg-amber-500/10 border-t-2 border-dashed border-black flex justify-center items-center gap-0.5 pointer-events-none">
+                {Array.from({ length: 18 }).map((_, i) => (
+                  <div key={i} className="w-1.5 h-2.5 bg-yellow-400 border-r border-black" />
                 ))}
               </div>
 
               {/* Pack Content Header */}
               <div className="text-center pt-3.5 z-10">
-                <div className="text-[8px] font-mono font-black text-amber-400 tracking-widest uppercase mb-0.5">FIGHTING ARENA</div>
-                <div className="text-sm font-black text-white uppercase italic tracking-tighter leading-none font-orbitron">T. C. G. EDITION</div>
-                <div className="w-8 h-1 bg-red-500 mx-auto mt-1.5 rounded-full" />
+                <div className="text-[9px] font-cartoon text-yellow-400 tracking-wider uppercase mb-0.5">FIGHTING ARENA</div>
+                <div className="text-xs font-black text-white uppercase italic tracking-wider leading-none font-retro">T. C. G. EDITION</div>
+                <div className="w-8 h-1 bg-red-500 mx-auto mt-1.5 rounded-full border border-black" />
               </div>
 
               {/* Pack Foil Illustration central brand logotype */}
@@ -184,14 +198,14 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
                 </div>
                 
                 <span className="text-[8px] font-mono font-bold text-slate-400 uppercase tracking-widest mt-3">Booster Grade Foil</span>
-                <span className="text-[7.5px] font-mono text-amber-500 font-extrabold tracking-tight">TAP OR COLLIDE TO OPEN</span>
+                <span className="text-[10px] font-cartoon text-yellow-400 tracking-tight mt-1">TAP OR CLICK TO OPEN</span>
               </div>
 
               {/* Footer specs labels */}
               <div className="text-center pb-3 z-10">
-                <div className="text-[8.5px] font-mono text-slate-500">CONTAINS 1 RANDOM HERO</div>
-                <div className="text-[7px] font-mono text-amber-400 uppercase font-black tracking-widest mt-0.5 animate-pulse flex items-center justify-center gap-1">
-                  <Sparkles className="w-2 h-2" /> HOLOGRAPHIC GUARANTEED!
+                <div className="text-[8.5px] font-mono text-slate-400 font-bold">CONTAINS 1 RANDOM HERO</div>
+                <div className="text-[8.5px] font-cartoon text-yellow-300 uppercase tracking-wider mt-1 animate-pulse flex items-center justify-center gap-1">
+                  <Sparkles className="w-2.5 h-2.5 text-yellow-300" /> HOLOGRAPHIC GUARANTEED!
                 </div>
               </div>
             </div>
@@ -199,7 +213,7 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
             {/* Prompt action button below */}
             <button
               onClick={startRipping}
-              className="mt-6 px-10 py-3 rounded-xl bg-gradient-to-r from-red-650 via-amber-500 to-yellow-500 hover:from-red-700 hover:to-yellow-600 font-orbitron font-extrabold text-[11px] text-white tracking-widest uppercase transition-all duration-300 transform active:scale-95 shadow-[0_0_18px_rgba(245,158,11,0.25)] border border-yellow-400/20 cursor-pointer"
+              className="mt-6 px-10 py-3.5 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-yellow-500 hover:from-red-700 hover:to-yellow-600 font-cartoon font-black text-xs text-white tracking-widest uppercase transition-all duration-300 transform active:scale-95 border-2 border-black cartoon-shadow cursor-pointer"
             >
               RIP OPEN PACK!
             </button>
@@ -210,18 +224,18 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
         {step === 'ripping' && (
           <div className="flex flex-col items-center">
             {/* Shaking booster pack tearing up */}
-            <div className="relative w-[240px] h-[350px] bg-gradient-to-b from-slate-900 to-indigo-950 border-4 border-amber-400 rounded-2xl animate-[bounce_0.12s_infinite] shadow-2xl flex flex-col items-center justify-center overflow-hidden">
+            <div className="relative w-[240px] h-[350px] bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-950 rounded-2xl animate-[bounce_0.12s_infinite] flex flex-col items-center justify-center overflow-hidden cartoon-border cartoon-shadow">
               
               {/* Splitting slash bar */}
-              <div className="absolute h-full w-2 bg-yellow-400/40 rotate-[20deg] animate-pulse shadow-[0_0_30px_#facc15]" />
+              <div className="absolute h-full w-2 bg-yellow-450 rotate-[20deg] animate-pulse shadow-[0_0_30px_#facc15]" />
               
               <PokeBall className="w-14 h-14 animate-spin scale-110" type="master" animate={false} />
               
-              <span className="text-xs font-mono font-black text-amber-400 tracking-widest mt-5 animate-pulse">RIPPING BOOSTER PACK...</span>
+              <span className="text-xs font-cartoon text-yellow-400 tracking-wider mt-5 animate-pulse">RIPPING BOOSTER PACK...</span>
               <div className="absolute inset-0 bg-white/5 animate-flash-interval pointer-events-none" />
             </div>
 
-            <p className="text-xs font-mono text-slate-400 mt-6 animate-pulse">Unlocking holographic secrets...</p>
+            <p className="text-xs font-semibold text-slate-400 mt-6 animate-pulse">Unlocking holographic secrets...</p>
           </div>
         )}
 
@@ -231,21 +245,21 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
             
             <div className="text-center mb-4.5">
               {revealedPokemon.isSecret ? (
-                <span className="inline-flex items-center gap-1.5 bg-yellow-500/20 text-yellow-300 text-[10px] font-mono font-black border border-yellow-400 px-3.5 py-1 rounded-full uppercase tracking-widest mb-2 animate-bounce shadow-[0_0_15px_rgba(234,179,8,0.4)]">
-                  <Sparkles className="w-3 h-3 text-yellow-400 animate-spin" /> SECRET LEAGUE RARE!
+                <span className="inline-flex items-center gap-1.5 bg-yellow-400 border-2 border-black text-slate-950 text-xs font-cartoon px-3.5 py-1 rounded-full uppercase tracking-wider mb-2 animate-bounce shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-slate-950 animate-spin" /> SECRET LEAGUE RARE!
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 bg-green-500/10 text-green-400 text-[10px] font-mono font-black border border-green-500/20 px-3.5 py-1 rounded-full uppercase tracking-widest mb-2 animate-bounce">
-                  <Sparkles className="w-3 h-3 text-yellow-400 animate-spin" /> UNLOCKED HOLOGRAPHIC!
+                <span className="inline-flex items-center gap-1.5 bg-green-500/10 border-2 border-green-500 text-green-400 text-xs font-cartoon px-3.5 py-1 rounded-full uppercase tracking-wider mb-2 animate-bounce">
+                  <Sparkles className="w-3.5 h-3.5 text-yellow-400 animate-spin" /> UNLOCKED HOLOGRAPHIC!
                 </span>
               )}
-              <h2 className={`text-3xl font-orbitron font-black text-white italic tracking-tight uppercase ${revealedPokemon.isSecret ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-red-400 drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)]' : ''}`}>
+              <h2 className={`text-3xl font-cartoon text-white uppercase ${revealedPokemon.isSecret ? 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-red-400 drop-shadow-[0_2px_10px_rgba(245,158,11,0.3)]' : ''}`}>
                 {revealedPokemon.name} ACQUIRED!
               </h2>
-              <p className="text-[11px] font-sans text-slate-400 max-w-sm mx-auto leading-relaxed">
+              <p className="text-xs font-semibold text-slate-350 max-w-sm mx-auto leading-relaxed mt-1">
                 {revealedPokemon.isSecret 
-                  ? "Unbelievable! You've uncovered an ultra-rare Booster-Exclusive Secret Legend! Test their divine power in stadium combat!"
-                  : "You have drawn a powerful fighter! Proceed to stadium fight directly, or try your luck again by ripping another package!"}
+                  ? "Unbelievable! You've uncovered an ultra-rare Booster-Exclusive Secret Legend! Test their passive powers in stadium combat!"
+                  : "You have drawn a powerful fighter! Proceed to physical fight directly, or roll again by open mystery booster pack!"}
               </p>
             </div>
 
@@ -254,14 +268,14 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
               
               {/* Orbiting visual glows */}
               <div className="absolute inset-0 flex justify-center items-center pointer-events-none -z-10 animate-spin duration-15000">
-                <div className={`w-56 h-76 rounded-xl border border-dashed scale-110 ${revealedPokemon.isSecret ? 'border-yellow-400/40 shadow-[0_0_35px_rgba(234,179,8,0.25)]' : 'border-red-500/20'}`} />
+                <div className={`w-56 h-76 rounded-xl border-2 border-dashed scale-110 ${revealedPokemon.isSecret ? 'border-yellow-400 shadow-[0_0_35px_rgba(234,179,8,0.25)]' : 'border-red-500/20'}`} />
               </div>
 
               {/* Sparkle effects radiating */}
               <div className="absolute top-1/4 left-1/4 animate-bounce">
                 <Sparkles className="w-5 h-5 text-yellow-500 blur-[0.5px]" />
               </div>
-              <div className="absolute bottom-1/4 right-1/4 animate-ping duration-1500 text-teal-400">
+              <div className="absolute bottom-1/4 right-1/4 animate-ping duration-1500 text-teal-400 text-base font-bold">
                 ✦
               </div>
 
@@ -270,26 +284,26 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
                 pokemon={revealedPokemon} 
                 label={revealedPokemon.isSecret ? "SECRET LEGEND" : "CHOSEN WARRIOR"} 
                 badgeColor={revealedPokemon.isSecret 
-                  ? "bg-gradient-to-r from-yellow-400 via-amber-500 to-red-500 text-slate-950 font-black animate-pulse border-yellow-300 shadow-[0_0_12px_rgba(243,156,18,0.6)]" 
-                  : "bg-yellow-400 text-slate-950 font-black animate-pulse border-yellow-500"} 
+                  ? "bg-gradient-to-r from-yellow-400 via-amber-500 to-red-550 text-slate-950 font-cartoon border-2 border-black tracking-wider shadow-sm" 
+                  : "bg-yellow-400 text-slate-950 font-cartoon border-2 border-black tracking-wider shadow-sm"} 
               />
             </div>
 
             {/* Accept / Re-roll Booster Action Hub grid */}
-            <div className="w-full max-w-[290px] flex flex-col gap-2 mt-4 z-10 relative">
+            <div className="w-full max-w-[290px] flex flex-col gap-2.5 mt-4 z-10 relative">
               <button
                 onClick={acceptFighter}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-orbitron font-extrabold text-xs tracking-wider py-3.5 rounded-xl uppercase transition-all duration-300 transform active:scale-95 shadow-[0_4px_20px_rgba(16,185,129,0.3)] border border-green-400/20 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-[#22c55e] hover:bg-green-600 text-white font-cartoon font-black text-xs py-3.5 rounded-2xl border-2 border-black cartoon-shadow flex items-center justify-center gap-2 cursor-pointer"
               >
-                <ShieldCheck className="w-4 h-4 text-emerald-300" /> Accept & Fight!
+                <ShieldCheck className="w-4.5 h-4.5 text-white" /> Accept & Fight!
               </button>
 
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={resetPack}
-                  className="bg-white/5 hover:bg-white/10 text-slate-350 hover:text-white border border-white/5 hover:border-white/10 font-mono font-bold text-[9px] py-2.5 rounded-lg transition uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="bg-white/10 hover:bg-white/20 text-white border-2 border-black font-cartoon font-black text-[10px] py-3 rounded-xl transition uppercase cursor-pointer"
                 >
-                  <RefreshCw className="w-3 h-3" /> Roll Again
+                  <RefreshCw className="w-3.5 h-3.5 inline mr-1" /> Re-roll
                 </button>
 
                 <button
@@ -297,9 +311,9 @@ export default function BoosterPack({ onClose, onAccept }: BoosterPackProps) {
                     playSelectSound();
                     onClose();
                   }}
-                  className="bg-white/5 hover:bg-white/10 text-slate-350 hover:text-white border border-white/5 hover:border-white/10 font-mono font-bold text-[9px] py-2.5 rounded-lg transition uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="bg-white/10 hover:bg-white/20 text-white border-2 border-black font-cartoon font-black text-[10px] py-3 rounded-xl transition uppercase cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" /> Back
+                  <X className="w-3.5 h-3.5 inline mr-1" /> Close
                 </button>
               </div>
             </div>

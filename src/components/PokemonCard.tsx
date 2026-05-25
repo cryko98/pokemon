@@ -155,10 +155,10 @@ export default function PokemonCard({ pokemon, label, badgeColor = 'bg-amber-400
   const theme = getCardTheme(pokemon.id);
 
   return (
-    <div className={`w-full max-w-[290px] mx-auto rounded-xl p-2.5 pb-3 border-4 ${theme.border} ${theme.outerBg} shadow-2xl relative overflow-hidden flex flex-col justify-between text-slate-950 select-none group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]`}>
+    <div className={`w-full max-w-[290px] mx-auto rounded-2xl p-3 border-2 border-black bg-gradient-to-b ${theme.outerBg} cartoon-shadow-sm relative overflow-hidden flex flex-col justify-between text-slate-950 select-none group transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_15px_30px_rgba(0,0,0,0.5)]`}>
       {/* Label Badge Overlay (Player 1 / CPU Opponent) */}
       {label && (
-        <div className={`absolute top-0.5 left-1/2 -translate-x-1/2 text-[8px] font-mono font-black px-3.5 py-0.5 rounded-b-md shadow border-x border-b border-black/10 uppercase tracking-widest z-20 ${badgeColor} select-none`}>
+        <div className={`absolute top-0.5 left-1/2 -translate-x-1/2 text-[9px] font-cartoon px-3.5 py-1 rounded-b-xl border-2 border-black uppercase tracking-wider z-20 ${badgeColor} select-none`}>
           {label}
         </div>
       )}
@@ -166,17 +166,17 @@ export default function PokemonCard({ pokemon, label, badgeColor = 'bg-amber-400
       {/* Holofoil shine overlay */}
       <div className={`absolute inset-0 translate-x-[-120%] rotate-12 ${theme.foilLine} w-[250%] h-[200%] pointer-events-none group-hover:translate-x-[100%] transition-transform duration-1000 ease-out z-10 opacity-70`} />
 
-      <div className="flex flex-col gap-2 relative z-10 mt-1">
+      <div className="flex flex-col gap-2 relative z-10 mt-2">
         {/* Card Header */}
-        <div className="flex justify-between items-center px-1 border-b border-black/15 pb-1">
+        <div className="flex justify-between items-center px-1 border-b-2 border-black/30 pb-1">
           <div className="flex flex-col line-height-tight">
-            <span className="text-[7px] font-mono font-black text-black/60 uppercase tracking-wider">Basic Pokémon</span>
-            <span className="text-sm font-sans font-black uppercase text-black italic tracking-tight">{pokemon.name}</span>
+            <span className="text-[7.5px] font-retro text-black/60 uppercase tracking-widest leading-none">Basic Pokémon</span>
+            <span className="text-md font-cartoon uppercase text-black tracking-wide mt-0.5">{pokemon.name}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] font-extrabold text-red-700 font-mono">HP</span>
-            <span className="text-base font-black font-mono text-red-700 leading-none">{pokemon.maxHp}</span>
-            <span className="text-sm -mt-0.5 inline-block">{theme.elementSymbol}</span>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[11px] font-retro text-red-650">HP</span>
+            <span className="text-base font-cartoon text-red-650 leading-none">{pokemon.maxHp}</span>
+            <span className="text-base -mt-1 inline-block shrink-0">{theme.elementSymbol}</span>
           </div>
         </div>
 
