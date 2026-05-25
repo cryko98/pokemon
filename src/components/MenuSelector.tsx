@@ -48,6 +48,15 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
   const [connectedRoomId, setConnectedRoomId] = useState<string>('');
   const [lobbyPlayers, setLobbyPlayers] = useState<{ [idStr: string]: { name: string; pokemonId: string; idStr: string } }>({});
   const [multiplayerWarning, setMultiplayerWarning] = useState<string | null>(null);
+  const [matchmakingServerUrl, setMatchmakingServerUrl] = useState<string>(() => {
+    const origin = window.location.origin;
+    // If it's localhost or run.app (Cloud Run), use the current webpage origin as the backend server.
+    // Otherwise, assume it's hosted elsewhere (like Vercel) and point it to our persistent Cloud Run backend.
+    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('run.app')) {
+      return origin;
+    }
+    return 'https://ais-pre-6irlnwsyo6ctuby4gzpwh7-144972049865.europe-west2.run.app';
+  });
 
   // Read unlocked secrets on initial mount and when booster is closed
   const reloadSecrets = () => {
@@ -120,9 +129,8 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
     setMultiplayerStatus('connecting');
     audio.playSelect();
 
-    // Initialize connection to local Server
-    const devUrl = window.location.origin;
-    const socketInstance = io(devUrl, {
+    // Initialize connection to local Server (supporting smart fallback for serverless hosting like Vercel)
+    const socketInstance = io(matchmakingServerUrl, {
       reconnectionAttempts: 4,
       timeout: 10000,
       withCredentials: true,
@@ -205,73 +213,85 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
   const allAlbumPokemons = [...POKEMONS, ...BOOSTER_SECRET_POKEMONS];
 
   return (
-    <div className="w-full max-w-5xl px-2 sm:px-4 py-3 flex flex-col gap-5 select-none animate-fade-in text-slate-100">
+    <div className="w-full max-w-5xl px-2 sm:px-4 py-3 flex flex-col gap-5 select-none animate-fade-in text-slate-900">
       
       {/* GLOWING HERO INTRO BANNER TITLE WITH CARTOON POKEMON STYLE */}
-      <div className="text-center flex flex-col items-center bg-[#1e293b] cartoon-border cartoon-shadow-lg p-5 sm:p-6 rounded-3xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-32 h-32 bg-red-500/[0.12] blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/[0.12] blur-3xl rounded-full pointer-events-none" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_2px,transparent_2px),linear-gradient(to_bottom,#ffffff03_2px,transparent_2px)] bg-[size:24px_24px] pointer-events-none opacity-40" />
+      <div className="flex flex-col bg-white border-4 border-black cartoon-shadow-lg rounded-3xl relative overflow-hidden">
+        {/* FULL BOUNDING FRAME BANNER WITH THE GIVEN IMAGE */}
+        <div className="w-full relative overflow-hidden bg-sky-150 border-b-4 border-black h-48 sm:h-64 md:h-80 flex items-center justify-center p-3">
+          <div className="absolute inset-0 bg-cover bg-center opacity-30 filter blur-sm" style={{ backgroundImage: "url('https://berjrozgwqoqpeqozceu.supabase.co/storage/v1/object/public/werld/poke.png')" }} />
+          <img 
+            src="https://berjrozgwqoqpeqozceu.supabase.co/storage/v1/object/public/werld/poke.png" 
+            className="relative z-10 max-w-full max-h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.25)] transform hover:scale-[1.03] transition-transform duration-350" 
+            alt="Pokémon Cartoon Cast"
+            referrerPolicy="no-referrer"
+          />
+        </div>
 
-        <div className="relative z-10 flex flex-col items-center w-full">
-          <div className="inline-flex items-center gap-1.5 bg-[#ef4444] border-2 border-black text-white text-[10px] sm:text-xs font-black px-4 py-1 rounded-full cartoon-shadow-sm mb-3.5 uppercase tracking-wider font-mono">
-            <Sword className="w-3.5 h-3.5 text-white animate-pulse" /> STADIUM FIGHTING LEAGUE 2026
-          </div>
+        <div className="text-center flex flex-col items-center p-5 sm:p-6 relative">
+          <div className="absolute top-0 left-0 w-32 h-32 bg-red-500/[0.08] blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/[0.08] blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000005_2px,transparent_2px),linear-gradient(to_bottom,#00000005_2px,transparent_2px)] bg-[size:20px_20px] pointer-events-none opacity-40" />
+
+          <div className="relative z-10 flex flex-col items-center w-full">
+            <div className="inline-flex items-center gap-1.5 bg-[#ef4444] border-2 border-black text-white text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-full cartoon-shadow-sm mb-3.5 uppercase tracking-wider font-mono">
+              <Sword className="w-3.5 h-3.5 text-white animate-pulse" /> STADIUM FIGHTING LEAGUE 2026
+            </div>
+            
+            <div className="flex items-center justify-center gap-3.5 my-1">
+              <PokeBall className="w-8 h-8 hidden sm:block filter drop-shadow animate-bounce" type="classic" />
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-yellow-400 font-cartoon drop-shadow-[4px_4px_0_#000] tracking-normal select-none py-1 transform -rotate-1">
+                POKÉMON ARENA FIGHTER
+              </h1>
+              <PokeBall className="w-8 h-8 hidden sm:block filter drop-shadow animate-bounce" type="ultra" />
+            </div>
           
-          <div className="flex items-center justify-center gap-3.5 my-1.5">
-            <PokeBall className="w-8 h-8 hidden sm:block filter drop-shadow animate-bounce" type="classic" />
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-yellow-400 font-cartoon drop-shadow-[4px_4px_0_#000] tracking-normal select-none py-1 transform -rotate-1">
-              POKÉMON ARENA FIGHTER
-            </h1>
-            <PokeBall className="w-8 h-8 hidden sm:block filter drop-shadow animate-bounce" type="ultra" />
-          </div>
-          
-          <p className="text-xs sm:text-sm text-yellow-100 max-w-xl mx-auto leading-relaxed font-semibold drop-shadow-[1px_1px_0_rgba(0,0,0,0.8)] mt-2">
+          <p className="text-xs sm:text-sm text-slate-800 max-w-xl mx-auto leading-relaxed font-semibold mt-2">
             Control your legendary Pokémon in real-time in the ultimate battle coliseum! Rip randomized Mystery Packs to discover mythical deities, or challenge dual opponents online!
           </p>
 
           {/* CARTOON STYLED NAVIGATION TAB MENU */}
-          <nav className="flex items-center gap-1.5 sm:gap-2.5 mt-6 p-1.5 bg-black rounded-2xl w-full max-w-xl shadow-2xl">
+          <nav className="flex items-center gap-1.5 sm:gap-2.5 mt-6 p-2 bg-slate-900 border-4 border-black rounded-3xl w-full max-w-xl shadow-xl">
             <button
               onClick={() => handleTabChange('bot')}
-              className={`flex-1 py-3 rounded-xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
+              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
                 activeTab === 'bot'
                   ? 'bg-yellow-400 text-slate-950 border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
               <Sword className="w-4 h-4" /> VS BOT
             </button>
             <button
               onClick={() => handleTabChange('multiplayer')}
-              className={`flex-1 py-3 rounded-xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase relative ${
+              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase relative ${
                 activeTab === 'multiplayer'
                   ? 'bg-red-500 text-white border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
               <Globe className="w-4 h-4" /> ONLINE PVP
-              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-black"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-black"></span>
               </span>
             </button>
             <button
               onClick={() => handleTabChange('album')}
-              className={`flex-1 py-3 rounded-xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
+              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
                 activeTab === 'album'
                   ? 'bg-cyan-400 text-slate-950 border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
               <BookOpen className="w-4 h-4" /> ALBUM
             </button>
             <button
               onClick={() => handleTabChange('abilities')}
-              className={`flex-1 py-3 rounded-xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
+              className={`flex-1 py-3 rounded-2xl font-black flex items-center justify-center gap-2 transition-all cursor-pointer text-xs sm:text-sm uppercase ${
                 activeTab === 'abilities'
                   ? 'bg-purple-500 text-white border-2 border-black cartoon-shadow-sm font-cartoon tracking-wider'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
               <Sparkles className="w-4 h-4" /> PASSIVES
@@ -279,6 +299,7 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
           </nav>
         </div>
       </div>
+    </div>
 
       {activeTab === 'bot' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-in">
@@ -288,25 +309,25 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               
               {/* P1 SELECTOR */}
-              <div className="bg-[#1e293b] cartoon-border cartoon-shadow p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-4">
+              <div className="bg-white border-4 border-black cartoon-shadow p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-4">
                 <div>
-                  <h3 className="text-sm font-cartoon text-yellow-400 uppercase tracking-wide flex items-center justify-between mb-4">
-                    <span className="flex items-center gap-2 drop-shadow-[1px_1px_0_#000]">
+                  <h3 className="text-sm font-cartoon text-slate-850 uppercase tracking-wide flex items-center justify-between mb-4">
+                    <span className="flex items-center gap-2 drop-shadow-[1px_1px_0_rgba(255,255,255,0.8)]">
                       <PokeBall className="w-6 h-6 shrink-0" type="classic" /> PLAYER 1 (YOU)
                     </span>
-                    <span className="text-[10px] font-mono text-slate-450 font-bold uppercase">CHOOSE ALLY</span>
+                    <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">CHOOSE ALLY</span>
                   </h3>
-
+ 
                   <button
                     onClick={() => {
                       setBoosterPackActive(true);
                       audio.playSelect();
                     }}
-                    className="w-full mb-4 bg-gradient-to-r from-red-550 via-amber-500 to-yellow-400 hover:from-red-650 hover:to-yellow-500 text-slate-950 font-cartoon font-black text-xs tracking-wider py-3 px-4 rounded-xl flex items-center justify-center gap-1.5 border-2 border-black cartoon-shadow-sm cursor-pointer transition-all duration-300 uppercase animate-pulse"
+                    className="w-full mb-4 bg-gradient-to-r from-red-500 via-amber-400 to-yellow-300 hover:from-red-650 hover:to-yellow-500 text-slate-950 font-cartoon font-black text-xs tracking-wider py-3 px-4 rounded-xl flex items-center justify-center gap-1.5 border-2 border-black cartoon-shadow-sm cursor-pointer transition-all duration-300 uppercase animate-pulse"
                   >
                     🎁 OPEN MYSTERY BOOSTER PACK!
                   </button>
-
+ 
                   <div className="grid grid-cols-4 gap-1.5 mb-4">
                     {POKEMONS.map((poke) => {
                       const isSelected = selectedP1.id === poke.id;
@@ -316,12 +337,12 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                           onClick={() => selectP1Character(poke)}
                           className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 group ${
                             isSelected
-                              ? 'bg-yellow-400/10 border-yellow-400 shadow-[0_0_12px_rgba(234,179,8,0.3)]'
-                              : 'bg-slate-950 border-black hover:border-slate-700'
+                              ? 'bg-yellow-300 border-black cartoon-shadow-sm'
+                              : 'bg-slate-50 border-black hover:bg-slate-100'
                           }`}
                         >
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-slate-900 transition-transform group-hover:scale-105"
+                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white transition-transform group-hover:scale-105"
                             style={{ background: `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}55 100%)` }}
                           >
                             <img 
@@ -331,11 +352,11 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-slate-100 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[9px] font-sans font-black text-slate-800 truncate w-full text-center">{poke.name}</span>
                         </button>
                       );
                     })}
-
+ 
                     {/* Unlocked secret boosters show in select array! */}
                     {unlockedSecretIds.map(secId => {
                       const poke = BOOSTER_SECRET_POKEMONS.find(p => p.id === secId);
@@ -347,13 +368,13 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                           onClick={() => selectP1Character(poke)}
                           className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 relative group border-dashed ${
                             isSelected
-                              ? 'bg-yellow-400/20 border-yellow-450 shadow-[0_0_14px_rgba(234,179,8,0.4)]'
-                              : 'bg-slate-900 border-yellow-500/50 hover:border-yellow-400'
+                              ? 'bg-yellow-300 border-black cartoon-shadow-sm'
+                              : 'bg-slate-100 border-yellow-600/70 hover:border-yellow-500'
                           }`}
                         >
                           <span className="absolute -top-1.5 -right-0.5 bg-yellow-400 border border-black text-slate-950 text-[6.5px] font-black font-mono px-1 rounded-full scale-75 shadow-md z-10 animate-pulse">RARE</span>
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-slate-900"
+                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white"
                             style={{ background: `radial-gradient(circle, #facc1522 0%, #facc1577 100%)` }}
                           >
                             <img 
@@ -363,28 +384,28 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-yellow-300 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[9px] font-sans font-black text-yellow-600 truncate w-full text-center">{poke.name}</span>
                         </button>
                       );
                     })}
                   </div>
-
+ 
                   <div className="w-full flex justify-center">
                     <PokemonCard pokemon={selectedP1} label="YOUR HERO" badgeColor="bg-yellow-400 text-slate-950 border-2 border-black" />
                   </div>
                 </div>
               </div>
-
+ 
               {/* CPU SELECTOR */}
-              <div className="bg-[#1e293b] cartoon-border cartoon-shadow p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-4">
+              <div className="bg-white border-4 border-black cartoon-shadow p-4 sm:p-5 rounded-3xl flex flex-col justify-between gap-4">
                 <div>
-                  <h3 className="text-sm font-cartoon text-red-400 uppercase tracking-wide flex items-center justify-between mb-4">
-                    <span className="flex items-center gap-2 drop-shadow-[1px_1px_0_#000]">
+                  <h3 className="text-sm font-cartoon text-rose-500 uppercase tracking-wide flex items-center justify-between mb-4">
+                    <span className="flex items-center gap-2 drop-shadow-[1px_1px_0_rgba(255,255,255,0.8)]">
                       <PokeBall className="w-6 h-6 shrink-0" type="ultra" /> OPPONENT NPC (BOT)
                     </span>
-                    <span className="text-[10px] font-mono text-slate-450 font-bold uppercase">BOT FIGHTER</span>
+                    <span className="text-[10px] font-mono text-slate-500 font-bold uppercase">BOT FIGHTER</span>
                   </h3>
-
+ 
                   <div className="grid grid-cols-4 gap-1.5 mb-5 mt-10">
                     {POKEMONS.map((poke) => {
                       const isSelected = selectedCpu.id === poke.id;
@@ -395,12 +416,12 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                           onClick={() => selectCpuCharacter(poke)}
                           className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 relative group ${
                             isSelected
-                              ? 'bg-rose-550/10 border-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.3)]'
-                              : 'bg-slate-950 border-black hover:border-slate-700'
+                              ? 'bg-rose-400 text-white border-black cartoon-shadow-sm'
+                              : 'bg-slate-50 border-black hover:bg-slate-100'
                           }`}
                         >
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-slate-900"
+                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white"
                             style={{ background: `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}55 100%)` }}
                           >
                             <img 
@@ -410,14 +431,14 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-slate-100 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[9px] font-sans font-black text-slate-800 truncate w-full text-center">{poke.name}</span>
                           {isSame && (
                             <span className="absolute -top-1.5 -right-0.5 text-[6.5px] font-black font-mono bg-red-600 border border-black text-white px-1.5 py-0.2 rounded-full scale-90 shadow-md">CLONE</span>
                           )}
                         </button>
                       );
                     })}
-
+ 
                     {/* Unlocked secrets can also be battled as AI! */}
                     {unlockedSecretIds.map(secId => {
                       const poke = BOOSTER_SECRET_POKEMONS.find(p => p.id === secId);
@@ -430,12 +451,12 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                           onClick={() => selectCpuCharacter(poke)}
                           className={`p-1.5 rounded-xl border-2 flex flex-col items-center gap-1 cursor-pointer transition-all duration-300 border-dashed relative group ${
                             isSelected
-                              ? 'bg-rose-500/10 border-rose-550 shadow-[0_0_14px_rgba(244,63,94,0.35)]'
-                              : 'bg-slate-900 border-yellow-500/40 hover:border-yellow-450'
+                              ? 'bg-rose-450 text-white border-black cartoon-shadow-sm'
+                              : 'bg-slate-50 border-yellow-600/40 hover:border-yellow-450'
                           }`}
                         >
                           <div 
-                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-slate-900"
+                            className="w-9 h-9 rounded-full flex items-center justify-center border-2 border-black overflow-hidden relative p-1 bg-white"
                             style={{ background: `radial-gradient(circle, #facc1515 0%, #facc1555 100%)` }}
                           >
                             <img 
@@ -445,7 +466,7 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                               referrerPolicy="no-referrer"
                             />
                           </div>
-                          <span className="text-[9px] font-sans font-black text-slate-100 truncate w-full text-center">{poke.name}</span>
+                          <span className="text-[9px] font-sans font-black text-slate-800 truncate w-full text-center">{poke.name}</span>
                           {isSame && (
                             <span className="absolute -top-1.5 -right-0.5 text-[6.5px] font-black font-mono bg-red-600 border border-black text-white px-1.5 py-0.2 rounded-full scale-90 shadow-md">CLONE</span>
                           )}
@@ -453,24 +474,24 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                       );
                     })}
                   </div>
-
+ 
                   <div className="w-full flex justify-center">
                     <PokemonCard pokemon={selectedCpu} label="BOT OPPONENT" badgeColor="bg-rose-500 text-white border-2 border-black" isCpu />
                   </div>
                 </div>
               </div>
-
+ 
             </div>
           </div>
-
+ 
           {/* CHOOSE VENUE MAP & LAUNCH BLOCK */}
           <div className="lg:col-span-4 flex flex-col gap-5">
-            <div className="bg-[#1e293b] cartoon-border cartoon-shadow p-4 sm:p-5 rounded-3xl flex-1 flex flex-col justify-between">
+            <div className="bg-white border-4 border-black cartoon-shadow p-4 sm:p-5 rounded-3xl flex-1 flex flex-col justify-between">
               <div>
-                <h3 className="text-sm font-cartoon text-slate-100 uppercase tracking-wide mb-4 flex items-center gap-2">
+                <h3 className="text-sm font-cartoon text-slate-800 uppercase tracking-wide mb-4 flex items-center gap-2">
                   <span className="w-2.5 h-4 bg-yellow-400 border border-black rounded-sm" /> CHOOSE BATTLEFIELD:
                 </h3>
-
+ 
                 <div className="flex flex-col gap-2.5">
                   {ARENAS.map((arena) => {
                     const isSel = selectedArena.id === arena.id;
@@ -480,31 +501,31 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                         onClick={() => selectArenaItem(arena)}
                         className={`p-3.5 rounded-xl border-2 flex flex-col items-start gap-1 transition-all duration-300 text-left cursor-pointer ${
                           isSel
-                            ? 'border-yellow-400 bg-yellow-400/10 shadow-[0_0_12px_rgba(250,204,21,0.2)] ring-1 ring-yellow-400/20'
-                            : 'border-black bg-slate-950 hover:border-slate-700'
+                            ? 'border-black bg-yellow-350 cartoon-shadow-sm text-slate-950 font-semibold'
+                            : 'border-black bg-slate-50 text-slate-800 hover:bg-slate-100'
                         }`}
                       >
-                        <span className="text-xs font-cartoon text-white tracking-wide uppercase">{arena.name}</span>
-                        <p className="text-[10px] text-slate-350 leading-relaxed font-medium line-clamp-2">{arena.description}</p>
+                        <span className="text-xs font-cartoon text-slate-900 tracking-wide uppercase">{arena.name}</span>
+                        <p className="text-[10px] text-slate-600 leading-relaxed font-semibold line-clamp-2">{arena.description}</p>
                       </button>
                     );
                   })}
                 </div>
               </div>
-
+ 
               <div className="pt-4 border-t-2 border-black/30 mt-4 flex flex-col gap-3.5">
-                <div className="bg-slate-950 p-3 rounded-2xl border-2 border-black flex items-center justify-center gap-4.5 shadow-lg text-xs">
+                <div className="bg-slate-50 p-3 rounded-2xl border-2 border-black flex items-center justify-center gap-4 shadow-inner text-xs text-slate-900">
                   <div className="text-center">
-                    <div className="text-[8px] font-mono text-slate-400 uppercase font-black">YOUR HERO</div>
-                    <div className="font-cartoon text-yellow-400 uppercase tracking-wider">{selectedP1.name}</div>
+                    <div className="text-[8px] font-mono text-slate-500 uppercase font-black">YOUR HERO</div>
+                    <div className="font-cartoon text-yellow-600 uppercase tracking-wider">{selectedP1.name}</div>
                   </div>
-                  <span className="font-retro text-yellow-300 font-black text-[7px] bg-red-650 px-2 py-1 rounded border-2 border-black shadow animate-pulse">VS</span>
+                  <span className="font-retro text-yellow-350 font-black text-[7px] bg-red-650 px-2 py-1 rounded border-2 border-black shadow animate-pulse">VS</span>
                   <div className="text-center">
-                    <div className="text-[8px] font-mono text-slate-400 uppercase font-black">OPPONENT</div>
-                    <div className="font-cartoon text-rose-450 uppercase tracking-wider">{selectedCpu.name}</div>
+                    <div className="text-[8px] font-mono text-slate-500 uppercase font-black">OPPONENT</div>
+                    <div className="font-cartoon text-rose-650 uppercase tracking-wider">{selectedCpu.name}</div>
                   </div>
                 </div>
-
+ 
                 <button
                   onClick={startMatch}
                   className="w-full bg-gradient-to-r from-yellow-400 via-orange-500 to-amber-500 hover:from-yellow-500 hover:to-orange-600 text-slate-950 font-cartoon font-black text-sm tracking-widest uppercase transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] py-4 rounded-2xl shadow-lg border-2 border-black cursor-pointer shadow-amber-400/20 flex items-center justify-center gap-2.5"
@@ -513,21 +534,21 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                 </button>
               </div>
             </div>
-
-            <div className="bg-[#1e293b] cartoon-border p-4 rounded-2xl flex items-start gap-3 shadow-md">
-              <AlertTriangle className="w-5 h-5 text-yellow-400 animate-pulse shrink-0" />
-              <div className="text-[10px] font-medium text-slate-300 leading-relaxed">
-                <strong className="text-yellow-400 uppercase font-cartoon tracking-wider text-xs block mb-1">Controls:</strong>
-                <span>Move with <code className="text-yellow-400 font-bold bg-slate-950 px-1.5 py-0.5 rounded border border-black font-mono">W, A, S, D / Space</code>.</span>
+ 
+            <div className="bg-amber-50 border-4 border-black p-4 rounded-2xl flex items-start gap-3 shadow-md text-slate-800">
+              <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+              <div className="text-[10px] font-medium leading-relaxed">
+                <strong className="text-amber-600 uppercase font-cartoon tracking-wider text-xs block mb-1">Controls:</strong>
+                <span>Move with <code className="text-white font-bold bg-slate-900 px-1.5 py-0.5 rounded border border-black font-mono">W, A, S, D / Space</code>.</span>
                 <span className="block mt-1">Attack/Defense actions use keys:</span>
-                <span className="block mt-1 pl-1">⚡ <code className="text-yellow-400 font-mono font-bold">J</code> for <strong>Quick Melee</strong></span>
-                <span className="block pl-1">🔥 <code className="text-yellow-400 font-mono font-bold">K</code> for <strong>Heavy Melee</strong></span>
-                <span className="block pl-1">☄️ <code className="text-yellow-400 font-mono font-bold">L</code> for <strong>Special Projectile</strong> (cost 20 EN)</span>
-                <span className="block pl-1">🌟 <code className="text-yellow-400 font-mono font-bold">I</code> for <strong>Ultimate Move</strong> (cost 100 EN)</span>
+                <span className="block mt-1 pl-1">⚡ <code className="text-yellow-500 font-mono font-bold">J</code> for <strong>Quick Melee</strong></span>
+                <span className="block pl-1">🔥 <code className="text-yellow-500 font-mono font-bold">K</code> for <strong>Heavy Melee</strong></span>
+                <span className="block pl-1">☄️ <code className="text-yellow-500 font-mono font-bold">L</code> for <strong>Special Projectile</strong> (cost 20 EN)</span>
+                <span className="block pl-1">🌟 <code className="text-yellow-500 font-mono font-bold">I</code> for <strong>Ultimate Move</strong> (cost 100 EN)</span>
               </div>
             </div>
           </div>
-
+ 
         </div>
       )}
 
@@ -591,6 +612,22 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                     placeholder="EXAMPLE: ARENA-99"
                   />
                   <span className="text-[9px] font-mono text-slate-500 font-semibold pl-1">Tip: Invent a code word or host with the automatic default above</span>
+                </div>
+
+                <div className="flex flex-col gap-1.5 border-t border-black/25 pt-2.5">
+                  <label className="text-[10px] font-cartoon text-slate-350 uppercase tracking-wide pl-1 flex items-center gap-1">
+                    🌐 ONLINE MATCHMAKER SERVER URL:
+                  </label>
+                  <input
+                    type="text"
+                    value={matchmakingServerUrl}
+                    onChange={(e) => setMatchmakingServerUrl(e.target.value)}
+                    className="bg-slate-900 border-2 border-black rounded-xl px-4 py-2 text-[10.5px] font-mono font-semibold text-slate-300 focus:outline-none focus:border-yellow-400 transition-all shadow-inner"
+                    placeholder="https://..."
+                  />
+                  <p className="text-[8.5px] text-slate-400 leading-normal font-sans pl-1">
+                    On Vercel, this falls back automatically to the persistent application server (Cloud Run) so multiplayer matches run perfectly!
+                  </p>
                 </div>
 
                 <div className="pt-2">
@@ -746,25 +783,25 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
 
       {/* CARD ALBUM TAB (PORTRAIT SHOWCASE) */}
       {activeTab === 'album' && (
-        <div className="bg-[#1e293b] cartoon-border cartoon-shadow p-5 sm:p-6 rounded-3xl flex flex-col gap-6 animate-fade-in relative text-slate-100">
+        <div className="bg-white border-4 border-black cartoon-shadow p-5 sm:p-6 rounded-3xl flex flex-col gap-6 animate-fade-in relative text-slate-800">
           
-          <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-600/[0.08] blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute top-0 left-0 w-32 h-32 bg-cyan-600/[0.04] blur-3xl rounded-full pointer-events-none" />
 
           <div className="border-b-2 border-black pb-4">
-            <h2 className="text-xl sm:text-2xl font-cartoon text-yellow-400 uppercase tracking-wide flex items-center gap-2.5 drop-shadow-[1.5px_1.5px_0_#000]">
-              <BookOpen className="w-6 h-6 text-cyan-400 animate-pulse" /> POKÉMON CARD COLLECTION ALBUM
+            <h2 className="text-xl sm:text-2xl font-cartoon text-slate-850 uppercase tracking-wide flex items-center gap-2.5 drop-shadow-[1px_1px_0_rgba(0,0,0,0.05)]">
+              <BookOpen className="w-6 h-6 text-cyan-500 animate-pulse" /> POKÉMON CARD COLLECTION ALBUM
             </h2>
-            <p className="text-xs text-yellow-105 font-medium mt-1">
-              Browse the complete collection of Pokémon fighters. You can unlock elite secret legends (<strong className="text-yellow-400">RARE</strong>) by ripping mystery booster packs, permanently saving them to your collection!
+            <p className="text-xs text-slate-650 font-medium mt-1">
+              Browse the complete collection of Pokémon fighters. You can unlock elite secret legends (<strong className="text-amber-600">RARE</strong>) by ripping mystery booster packs, permanently saving them to your collection!
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
             
             {/* INVENTORY GRID - LEFT (7 COLS) */}
-            <div className="md:col-span-7 flex flex-col gap-3.5 bg-slate-950/40 p-4 rounded-3xl border-2 border-black h-auto max-h-[500px] overflow-y-auto shadow-inner">
-              <h3 className="text-xs font-cartoon text-yellow-400 uppercase tracking-wide pl-1 mb-1.5 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-cyan-500" /> COLLECTIBLE CARD VAULT ({allAlbumPokemons.length} cards):
+            <div className="md:col-span-7 flex flex-col gap-3.5 bg-slate-50 p-4 rounded-3xl border-2 border-black h-auto max-h-[500px] overflow-y-auto shadow-inner">
+              <h3 className="text-xs font-cartoon text-slate-800 uppercase tracking-wide pl-1 mb-1.5 flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-cyan-600" /> COLLECTIBLE CARD VAULT ({allAlbumPokemons.length} cards):
               </h3>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -787,9 +824,9 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                       className={`p-2 rounded-xl border-2 flex flex-col items-center justify-between gap-2.5 transition-all duration-350 shrink-0 select-none cursor-pointer group relative ${
                         isUnlocked
                           ? isCurrentlySelected
-                            ? 'bg-cyan-500/10 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
-                            : 'bg-slate-900 border-black hover:border-slate-800'
-                          : 'bg-slate-950 border-dashed border-slate-850 opacity-40 cursor-not-allowed'
+                            ? 'bg-cyan-200 border-black cartoon-shadow-sm'
+                            : 'bg-white border-black hover:bg-slate-100'
+                          : 'bg-slate-100/60 border-dashed border-slate-300 opacity-40 cursor-not-allowed'
                       }`}
                       disabled={!isUnlocked}
                       title={isUnlocked ? poke.name : "Secret Legend - Locked"}
@@ -801,8 +838,8 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                       <div 
                         className={`w-10 h-10 rounded-full flex items-center justify-center border-2 overflow-hidden relative p-1 transition-all ${
                           isUnlocked 
-                            ? 'bg-slate-950 border-black group-hover:scale-105'
-                            : 'bg-slate-950 border-slate-800'
+                            ? 'bg-white border-black group-hover:scale-105'
+                            : 'bg-slate-200 border-slate-400'
                         }`}
                         style={{ background: isUnlocked ? `radial-gradient(circle, ${poke.color}22 0%, ${poke.color}55 100%)` : '' }}
                       >
@@ -814,12 +851,12 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
                             referrerPolicy="no-referrer"
                           />
                         ) : (
-                          <Lock className="w-4 h-4 text-slate-700" />
+                          <Lock className="w-4 h-4 text-slate-400" />
                         )}
                       </div>
 
                       <div className="text-center w-full min-w-0">
-                        <span className={`text-[10px] font-sans font-black block truncate leading-tight ${isUnlocked ? 'text-slate-250' : 'text-slate-600 font-light'}`}>
+                        <span className={`text-[10px] font-sans font-black block truncate leading-tight ${isUnlocked ? 'text-slate-800' : 'text-slate-400 font-light'}`}>
                           {isUnlocked ? poke.name : '???'}
                         </span>
                         <span className="text-[7.5px] font-mono text-slate-500 uppercase block leading-none mt-0.5">
@@ -832,9 +869,9 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
               </div>
 
               {/* Booster Pack Prompt block inside Album */}
-              <div className="mt-4 bg-[#facc15]/10 border-2 border-yellow-500 p-4 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md">
-                <p className="font-semibold text-yellow-100 leading-relaxed text-[10px] sm:text-xs">
-                  Missing any secret god cards (<strong className="text-yellow-400">Rayquaza, Mew, Garchomp, Arceus</strong>)? Take a shortcut!
+              <div className="mt-4 bg-yellow-50 border-4 border-black p-4 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-md">
+                <p className="font-semibold text-slate-800 leading-relaxed text-[10px] sm:text-xs">
+                  Missing any secret god cards (<strong className="text-amber-600">Rayquaza, Mew, Garchomp, Arceus</strong>)? Take a shortcut!
                 </p>
                 <button
                   onClick={() => {
@@ -849,20 +886,20 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
             </div>
 
             {/* EXPANDED INTERACTIVE PREVIEW - RIGHT (5 COLS) */}
-            <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-950/40 border-2 border-black p-4 rounded-3xl relative shadow-xl min-h-[350px]">
+            <div className="md:col-span-5 flex flex-col items-center justify-center bg-slate-50 border-2 border-black p-4 rounded-3xl relative shadow-xl min-h-[350px]">
               
-              <div className="absolute top-1 bg-cyan-950 border-2 border-cyan-500 text-cyan-400 text-[8px] font-mono font-black tracking-widest px-3 py-1 rounded-full mb-2">
+              <div className="absolute top-1 bg-cyan-500 border-2 border-black text-white text-[8px] font-mono font-black tracking-widest px-3 py-1 rounded-full mb-2">
                 HOLOGRAPHIC ENVELOPE SHOWCASE ✦
               </div>
 
               <div className="w-full flex justify-center mt-6">
-                <PokemonCard pokemon={albumSelected} label="COLLECTION CARD" badgeColor="bg-cyan-45 * text-slate-950 border-2 border-black" />
+                <PokemonCard pokemon={albumSelected} label="COLLECTION CARD" badgeColor="bg-cyan-500 text-white border-2 border-black" />
               </div>
 
               {/* Detailed information description in English */}
-              <div className="mt-4 bg-slate-900 border-2 border-black p-4 rounded-2xl w-full text-left">
-                <div className="text-[10px] font-cartoon text-yellow-400 uppercase tracking-wide">CARD BIO & DESCRIPTION:</div>
-                <p className="text-xs text-slate-300 leading-relaxed font-semibold mt-1.5 text-justify">
+              <div className="mt-4 bg-white border-2 border-black p-4 rounded-2xl w-full text-left">
+                <div className="text-[10px] font-cartoon text-cyan-600 uppercase tracking-wide">CARD BIO & DESCRIPTION:</div>
+                <p className="text-xs text-slate-700 leading-relaxed font-semibold mt-1.5 text-justify">
                   {albumSelected.description}
                 </p>
               </div>
@@ -875,15 +912,15 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
 
       {/* DETAILED POKÉMON ABILITIES TAB */}
       {activeTab === 'abilities' && (
-        <div className="bg-[#1e293b] cartoon-border cartoon-shadow p-5 sm:p-6 rounded-3xl flex flex-col gap-6 animate-fade-in relative text-slate-100">
+        <div className="bg-white border-4 border-black cartoon-shadow p-5 sm:p-6 rounded-3xl flex flex-col gap-6 animate-fade-in relative text-slate-800">
           
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-650/[0.08] blur-3xl rounded-full pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-650/[0.04] blur-3xl rounded-full pointer-events-none" />
 
           <div className="border-b-2 border-black pb-4">
-            <h2 className="text-xl sm:text-2xl font-cartoon text-yellow-400 uppercase tracking-wide flex items-center gap-2.5 drop-shadow-[1.5px_1.5px_0_#000]">
-              <Sparkles className="w-6 h-6 text-purple-400 animate-pulse shrink-0" /> POKÉMON SPECIAL PASSIVES & ABILITIES
+            <h2 className="text-xl sm:text-2xl font-cartoon text-slate-850 uppercase tracking-wide flex items-center gap-2.5 drop-shadow-[1px_1px_0_rgba(0,0,0,0.05)]">
+              <Sparkles className="w-6 h-6 text-purple-500 animate-pulse shrink-0" /> POKÉMON SPECIAL PASSIVES & ABILITIES
             </h2>
-            <p className="text-xs text-yellow-105 font-medium mt-1">
+            <p className="text-xs text-slate-650 font-medium mt-1">
               Every Pokémon possess an unique specialized passive skill and defensive combat perk that modifies their damage curves and active gameplay style!
             </p>
           </div>
@@ -894,10 +931,10 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
               return (
                 <div 
                   key={poke.id} 
-                  className={`p-4 rounded-2xl border-2 flex gap-4 transition-all hover:bg-slate-950/40 relative ${
+                  className={`p-4 rounded-2xl border-2 flex gap-4 transition-all hover:bg-slate-100 relative ${
                     isSec 
-                      ? 'bg-yellow-500/5 border-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.15)]' 
-                      : 'bg-slate-950 border-black shadow'
+                      ? 'bg-yellow-300/10 border-yellow-500 shadow-[0_0_12px_rgba(234,179,8,0.1)]' 
+                      : 'bg-slate-55 border-black shadow'
                   }`}
                 >
                   {isSec && (
@@ -914,13 +951,13 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
 
                   {/* Descriptions */}
                   <div className="text-left flex-1 min-w-0">
-                    <h4 className="text-sm font-cartoon text-slate-150 flex items-center gap-1.5 leading-tight uppercase">
+                    <h4 className="text-sm font-cartoon text-slate-850 flex items-center gap-1.5 leading-tight uppercase">
                       {poke.name}
-                      <span className="text-[9px] font-mono text-purple-400 font-extrabold bg-purple-500/10 border border-purple-550/35 px-2 py-0.2 rounded-full leading-none shrink-0">
+                      <span className="text-[9px] font-mono text-purple-500 font-extrabold bg-purple-500/15 border border-purple-400 px-2 py-0.2 rounded-full leading-none shrink-0">
                         {poke.abilityName || 'Passive'}
                       </span>
                     </h4>
-                    <p className="text-[11px] text-slate-350 leading-relaxed font-semibold mt-1.5">
+                    <p className="text-[11px] text-slate-650 leading-relaxed font-bold mt-1.5">
                       {poke.abilityDesc || 'Unique specialized passive skill under evaluation.'}
                     </p>
                   </div>

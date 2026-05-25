@@ -16,7 +16,12 @@ body,
   min-height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #0f172a;
+  background-color: #f0f9ff;
+  background-image: 
+    radial-gradient(#bae6fd 2px, transparent 2px), 
+    radial-gradient(#bae6fd 2px, #f0f9ff 2px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
   overflow-x: hidden;
 }
 
