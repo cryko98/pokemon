@@ -12,7 +12,11 @@ async function startServer() {
   // Set up socket.io with the HTTP server
   const io = new SocketServer(httpServer, {
     cors: {
-      origin: "*",
+      origin: (origin, callback) => {
+        // Return true/dynamically echo origin to sustain credential transfer
+        callback(null, origin || "*");
+      },
+      credentials: true,
       methods: ["GET", "POST"]
     }
   });

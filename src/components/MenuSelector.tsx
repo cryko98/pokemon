@@ -124,7 +124,9 @@ export default function MenuSelector({ onStartFight, onStartMultiplayerFight }: 
     const devUrl = window.location.origin;
     const socketInstance = io(devUrl, {
       reconnectionAttempts: 4,
-      timeout: 8000
+      timeout: 10000,
+      withCredentials: true,
+      transports: ['polling', 'websocket']
     });
 
     setSocket(socketInstance);
