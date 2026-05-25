@@ -344,6 +344,19 @@ export default function GameController({
         audio.playBlock();
         addCombatText('BLOCKED!', defender.x, defender.y - 50, '#67E8F9', 20);
         createExplosion(defender.x, defender.y - 25, '#CBD5E1', 10, 2);
+
+        // CPU Smart block counter-strike to break physical loop spams!
+        if (defender.id === 'cpu' && !isMultiplayer) {
+          const counterChance = difficulty === 'easy' ? 0.12 : difficulty === 'normal' ? 0.45 : 0.80;
+          if (Math.random() < counterChance) {
+            // Instantly transition to a fast, defensive counter-attack to punish spamming!
+            defender.state = 'attack_quick';
+            defender.stateTimer = 18;
+            defender.vx = defender.dir * 3; // slide forward slightly toward target
+            addCombatText('COUNTER-STRIKE! ⚡', defender.x, defender.y - 70, '#FBBF24', 18);
+            triggerMeleeAttack(defender, attacker, 'quick');
+          }
+        }
       } else {
         if (attackType === 'heavy' || attackType === 'ultimate') {
           audio.playHeavyHit();
@@ -658,9 +671,9 @@ export default function GameController({
       const active = isMultiplayer ? (multiplayerSide === 'player' ? p1Ref.current : cpuRef.current) : p1Ref.current;
       const target = isMultiplayer ? (multiplayerSide === 'player' ? cpuRef.current : p1Ref.current) : cpuRef.current;
 
-      // Combat actions keys
+      // Combat actions keys (strictly guarded against attack animation spamming)
       if (k === 'j' || e.key === '1') {
-        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate') {
+        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate' && !active.state.startsWith('attack_')) {
           active.state = 'attack_quick';
           active.stateTimer = 18; // 18 frames duration
           audio.playJump(); // Quick air swoosh
@@ -671,7 +684,7 @@ export default function GameController({
         }
       }
       else if (k === 'k' || e.key === '2') {
-        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate') {
+        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate' && !active.state.startsWith('attack_')) {
           active.state = 'attack_heavy';
           active.stateTimer = 32; // heavier swing
           triggerMeleeAttack(active, target, 'heavy');
@@ -681,7 +694,7 @@ export default function GameController({
         }
       }
       else if (k === 'l' || e.key === '3') {
-        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate') {
+        if (active.state !== 'hit' && active.state !== 'fainted' && active.state !== 'ultimate' && !active.state.startsWith('attack_')) {
           fireSpecialProjectile(active, target);
           if (isMultiplayer && clientSocket) {
             clientSocket.emit('remote_action', { roomId, action: 'spawn_projectile', payload: { ownerId: multiplayerSide } });
@@ -918,6 +931,22 @@ export default function GameController({
           // Align CPU direction to face player
           cpu.dir = dx > 0 ? 1 : -1;
 
+          // INSTANT HIGH-FREQUENCY BLOCKING SHIELD COOLDOWN (Checked every frame, not inside tickRate limit)
+          const playerAttacking = (p1.state.startsWith('attack_') || p1.state === 'ultimate') && dist < 85;
+          if (playerAttacking) {
+            const blockChance = difficulty === 'easy' ? 0.22 : difficulty === 'normal' ? 0.60 : 0.88;
+            if (Math.random() < blockChance) {
+              cpu.isBlocking = true;
+              cpu.vx *= 0.70; // slide back slightly during impact block
+              if (cpu.state === 'walk') cpu.state = 'idle';
+            }
+          } else {
+            // Drop block shield on off-frames dynamically
+            if (tickCount % 3 === 0) {
+              cpu.isBlocking = false;
+            }
+          }
+
           // Simple decision matrix based on time ticks and difficulty modifier
           const updateRate = difficulty === 'easy' ? 40 : difficulty === 'normal' ? 24 : 12;
 
@@ -938,28 +967,20 @@ export default function GameController({
               // Extreme close range
               cpu.vx = 0;
               
-              // Check if player is attacking to activate smart defense block!
-              const playerAttacking = p1.state.includes('attack_') || p1.state === 'ultimate';
-              const blockChance = difficulty === 'easy' ? 0.28 : difficulty === 'normal' ? 0.62 : 0.82;
-              
-              if (playerAttacking && Math.random() < blockChance) {
-                // Activate Block Shield
-                cpu.isBlocking = true;
-                cpu.state = 'idle';
+              // No generic block here; handled above dynamically per frame!
+              cpu.isBlocking = false;
+
+              // Attack selection: Ultimate > Special > Heavy > Quick
+              if (cpu.energy >= 100 && Math.random() > 0.15) {
+                executeUltimateMove(cpu, p1);
+              } else if (Math.random() > 0.60) {
+                cpu.state = 'attack_heavy';
+                cpu.stateTimer = 34;
+                triggerMeleeAttack(cpu, p1, 'heavy');
               } else {
-                cpu.isBlocking = false;
-                // Attack selection: Ultimate > Special > Heavy > Quick
-                if (cpu.energy >= 100 && Math.random() > 0.2) {
-                  executeUltimateMove(cpu, p1);
-                } else if (Math.random() > 0.65) {
-                  cpu.state = 'attack_heavy';
-                  cpu.stateTimer = 34;
-                  triggerMeleeAttack(cpu, p1, 'heavy');
-                } else {
-                  cpu.state = 'attack_quick';
-                  cpu.stateTimer = 20;
-                  triggerMeleeAttack(cpu, p1, 'quick');
-                }
+                cpu.state = 'attack_quick';
+                cpu.stateTimer = 20;
+                triggerMeleeAttack(cpu, p1, 'quick');
               }
             } 
             else {
@@ -1063,7 +1084,32 @@ export default function GameController({
       }
       if (cpu.stateTimer > 0) {
         cpu.stateTimer--;
-        if (cpu.stateTimer === 0 && cpu.state !== 'fainted') cpu.state = 'idle';
+        if (cpu.stateTimer === 0 && cpu.state !== 'fainted') {
+          const wasHit = cpu.state === 'hit';
+          cpu.state = 'idle';
+
+          // Smart recovery escape action for CPU AI to prevent easy combo loops
+          if (wasHit && !isMultiplayer) {
+            const dist = Math.abs(p1.x - cpu.x);
+            if (dist < 85) {
+              const actionRoll = Math.random();
+              const escapeChance = difficulty === 'easy' ? 0.15 : difficulty === 'normal' ? 0.50 : 0.82;
+              if (actionRoll < escapeChance) {
+                // Evasive roll/backdash hop!
+                cpu.vx = -cpu.dir * cpuPokemon.speed * 1.6;
+                cpu.vy = -3.5;
+                cpu.isGrounded = false;
+                cpu.state = 'jump';
+                addCombatText('EVADE! 💨', cpu.x, cpu.y - 70, '#60A5FA', 18);
+                audio.playJump();
+              } else if (actionRoll < escapeChance + 0.15) {
+                // Instant defensive stance awake
+                cpu.isBlocking = true;
+                addCombatText('DEFEND! 🛡️', cpu.x, cpu.y - 70, '#67E8F9', 18);
+              }
+            }
+          }
+        }
       }
 
       // Combo system timeout decay
@@ -1240,7 +1286,7 @@ export default function GameController({
       keysRef.current['ArrowDown'] = true;
     } 
     else if (action === 'quick') {
-      if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate') {
+      if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate' && !p1.state.startsWith('attack_')) {
         p1.state = 'attack_quick';
         p1.stateTimer = 18;
         audio.playJump();
@@ -1248,7 +1294,7 @@ export default function GameController({
       }
     } 
     else if (action === 'heavy') {
-      if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate') {
+      if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate' && !p1.state.startsWith('attack_')) {
         p1.state = 'attack_heavy';
         p1.stateTimer = 32;
         audio.playJump(); // Play kick sound effect
@@ -1256,7 +1302,7 @@ export default function GameController({
       }
     } 
     else if (action === 'special') {
-      if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate') {
+      if (p1.state !== 'hit' && p1.state !== 'fainted' && p1.state !== 'ultimate' && !p1.state.startsWith('attack_')) {
         fireSpecialProjectile(p1, cpuRef.current);
       }
     } 
