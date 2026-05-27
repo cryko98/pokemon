@@ -398,58 +398,58 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
   const trainerAchievements = getAchievements();
 
   return (
-    <div className="w-full text-slate-100 font-sans">
+    <div className="w-full text-slate-950 font-sans">
       
       {/* 1. NOT LOGGED IN STATE: SIGN UP OR CHOOSE PROFILE */}
       {!currentProfile ? (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-fade-in p-1 text-slate-100">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-fade-in p-1 text-slate-955">
           
           {/* TRAINER REGISTER */}
-          <div className="md:col-span-6 glass-panel p-5 sm:p-6 rounded-3xl flex flex-col justify-between border border-white/5">
+          <div className="md:col-span-6 bg-white border-4 border-slate-950 p-5 sm:p-6 rounded-[28px] flex flex-col justify-between shadow-[5px_5px_0px_#000000]">
             <form onSubmit={handleRegisterTrainer} className="flex flex-col gap-4">
-              <div className="flex items-center gap-2.5 bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 px-4 py-1.5 rounded-full font-bold text-xs uppercase w-max self-start shadow-md">
+              <div className="flex items-center gap-2.5 bg-yellow-400 text-slate-950 border-2 border-slate-950 px-4 py-1.5 rounded-full font-black text-xs uppercase w-max self-start shadow-[2px_2px_0px_#000]">
                 <Sword className="w-3.5 h-3.5" /> NEW TRAINER SIGNUP
               </div>
               
-              <h2 className="text-xl sm:text-2xl font-black text-slate-100 tracking-wide mt-1.5 uppercase font-display">
+              <h2 className="text-xl sm:text-2xl font-black text-slate-955 tracking-wide mt-1.5 uppercase font-display">
                 START YOUR CHAMPIONSHIP CAREER!
               </h2>
-              <p className="text-xs text-slate-400 leading-relaxed font-light">
+              <p className="text-xs text-slate-705 leading-relaxed font-semibold">
                 Create a persistent offline profile in your local browser history. With each campaign victory, you earn valuable Battle PTS to permanently augment your combat metrics (HP, Defense, Damage, Speed) and challenge elite bosses!
               </p>
 
               {errorMessage && (
-                <div className="bg-red-50 border-2 border-red-500 p-3 rounded-xl text-red-500 text-xs font-semibold font-mono uppercase">
+                <div className="bg-rose-100 border-2 border-rose-500 p-3 rounded-xl text-rose-600 text-xs font-black font-mono uppercase">
                   ⚠️ {errorMessage}
                 </div>
               )}
 
               <div className="flex flex-col gap-1.5 mt-2">
-                <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest pl-1">TRAINER USERNAME</label>
+                <label className="text-[10px] font-mono font-black text-slate-700 uppercase tracking-widest pl-1">TRAINER USERNAME</label>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   maxLength={15}
-                  className="bg-slate-950 border border-white/10 rounded-xl px-4 py-3 text-slate-100 text-xs font-mono focus:outline-none focus:border-indigo-505 transition shadow-inner"
+                  className="bg-slate-50 border-2 border-slate-950 rounded-xl px-4 py-3 text-slate-950 text-xs font-mono font-bold focus:outline-none focus:border-yellow-500 transition shadow-inner"
                   placeholder="e.g., Red, Ash Ketchum, Gary"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest pl-1">SECURITY PASSCODE (4 Digits)</label>
+                <label className="text-[10px] font-mono font-black text-slate-700 uppercase tracking-widest pl-1">SECURITY PASSCODE (4 Digits)</label>
                 <input
                   type="password"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value.replace(/\D/g, ''))}
                   maxLength={4}
-                  className="bg-slate-955 border border-white/10 rounded-xl bg-slate-950 px-4 py-3 text-slate-100 text-xs font-mono tracking-widest focus:outline-none focus:border-indigo-505 transition shadow-inner"
+                  className="bg-slate-50 border-2 border-slate-950 rounded-xl px-4 py-3 text-slate-950 text-xs font-mono tracking-widest font-bold focus:outline-none focus:border-yellow-500 transition shadow-inner"
                   placeholder="e.g., 1234"
                 />
               </div>
 
               <div className="flex flex-col gap-2 mt-1">
-                <label className="text-[10px] font-black text-slate-750 uppercase tracking-widest pl-1">SELECT YOUR STARTER MONSTER:</label>
+                <label className="text-[10px] font-black text-slate-800 uppercase tracking-widest pl-1">SELECT YOUR STARTER MONSTER:</label>
                 <div className="grid grid-cols-3 gap-1.5">
                   {POKEMONS.slice(0, 6).map((poke) => {
                     const isSel = starterId === poke.id;
@@ -463,11 +463,11 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                         }}
                         className={`p-2 rounded-xl border-2 cursor-pointer transition flex flex-col items-center gap-1.5 ${
                           isSel 
-                            ? 'bg-yellow-300 border-black cartoon-shadow-sm' 
-                            : 'bg-slate-50 border-slate-350 hover:bg-slate-100'
+                            ? 'bg-[#ffcb05] border-slate-950 text-slate-950 font-black shadow-[2px_2px_0px_rgba(0,0,0,1)]' 
+                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-400 hover:bg-slate-100'
                         }`}
                       >
-                        <div className="w-8 h-8 rounded-full border border-black overflow-hidden bg-white p-0.5">
+                        <div className="w-8 h-8 rounded-full border border-slate-350 overflow-hidden bg-white p-0.5">
                           <img src={poke.imageUrl} alt={poke.name} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
                         </div>
                         <span className="text-[9px] font-black text-slate-900 truncate w-full text-center uppercase tracking-wide">{poke.name}</span>
@@ -479,7 +479,7 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
 
               <button
                 type="submit"
-                className="w-full bg-slate-900 hover:bg-slate-950 text-yellow-300 border-3 border-black font-cartoon font-black text-xs py-3.5 mt-3 rounded-2xl cartoon-shadow-sm uppercase tracking-wider cursor-pointer transition duration-150 active:scale-95"
+                className="w-full bg-[#ffcb05] hover:bg-yellow-450 text-slate-950 border-3 border-slate-950 font-cartoon font-black text-xs py-3.5 mt-3 rounded-2xl shadow-[4px_4px_0px_#000000] uppercase tracking-wider cursor-pointer transition duration-150 active:scale-95"
               >
                 BEGIN ADVENTURE! 🌋 GO
               </button>
@@ -487,19 +487,19 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
           </div>
 
           {/* LOGIN SELECTOR PORTFOLIO (RIGHT) */}
-          <div className="md:col-span-6 glass-panel p-5 sm:p-6 rounded-3xl flex flex-col justify-between border border-white/5 text-slate-100">
+          <div className="md:col-span-6 bg-white border-4 border-slate-950 p-5 sm:p-6 rounded-[28px] flex flex-col justify-between shadow-[5px_5px_0px_#000000] text-slate-950">
             <div>
-              <div className="flex items-center gap-2.5 bg-red-500/10 border border-red-500/35 text-red-400 px-4 py-1.5 rounded-full font-bold text-xs uppercase w-max mb-4 shadow-sm">
+              <div className="flex items-center gap-2.5 bg-rose-500 text-white border-2 border-slate-950 px-4 py-1.5 rounded-full font-black text-xs uppercase w-max mb-4 shadow-[2px_2px_0px_#000]">
                 <UserCheck className="w-3.5 h-3.5" /> RETRIEVE PREVIOUS ARCHIVE
               </div>
 
-              <h2 className="text-xl font-display font-extrabold text-slate-100 tracking-wide uppercase mb-3 text-left">
+              <h2 className="text-xl font-display font-black text-slate-950 tracking-wide uppercase mb-3 text-left">
                 CHOOSE SAVED TRAINER FILE
               </h2>
 
               {profiles.length === 0 ? (
-                <div className="border border-white/10 rounded-2xl p-8 text-center text-slate-400 text-xs font-semibold py-14 bg-slate-950/40 mt-4 flex flex-col items-center gap-2.5 shadow-inner">
-                  <User className="w-8 h-8 opacity-45 text-slate-500" />
+                <div className="border-2 border-dashed border-slate-305 rounded-2xl p-8 text-center text-slate-500 text-xs font-semibold py-14 bg-slate-50 mt-4 flex flex-col items-center gap-2.5 shadow-inner">
+                  <User className="w-8 h-8 opacity-45 text-slate-500 animate-pulse" />
                   <span>No saved trainer profiles found in local cache yet. Use the signup form to begin!</span>
                 </div>
               ) : (
@@ -509,21 +509,21 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                     return (
                       <div 
                         key={p.id}
-                        className={`p-3.5 rounded-2xl border flex items-center justify-between transition ${
-                          joiningProfileId === p.id ? 'bg-slate-900 border-indigo-400' : 'bg-slate-950/40 border-white/5 hover:bg-slate-900/40'
+                        className={`p-3.5 rounded-2xl border-2 flex items-center justify-between transition ${
+                          joiningProfileId === p.id ? 'bg-indigo-50 border-slate-950 shadow-[2px_2px_0_rgba(0,0,0,1)]' : 'bg-white border-slate-200 hover:border-slate-455 hover:bg-slate-55'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full border border-white/10 bg-slate-900 flex items-center justify-center p-0.5 relative">
+                          <div className="w-10 h-10 rounded-full border-2 border-slate-950 bg-white flex items-center justify-center p-0.5 relative">
                             <img src={starter.imageUrl} alt={starter.name} className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
-                            <span className="absolute -bottom-1 -right-1 bg-yellow-550 bg-amber-500 text-slate-950 font-mono text-[8px] font-black border border-white/20 px-1 rounded-full leading-none">
+                            <span className="absolute -bottom-1 -right-1 bg-amber-400 text-slate-950 font-mono text-[8px] font-black border border-slate-950 px-1 rounded-full leading-none">
                               Stg {p.currentStage}
                             </span>
                           </div>
                           <div className="text-left">
-                            <span className="text-xs font-bold text-slate-100 uppercase block tracking-wide">{p.username}</span>
-                            <span className="text-[10px] font-mono font-semibold text-slate-400 flex items-center gap-1 uppercase">
-                              <Coins className="w-3 h-3 text-yellow-505" /> {p.points} Battle PTS
+                            <span className="text-xs font-black text-slate-950 uppercase block tracking-wide">{p.username}</span>
+                            <span className="text-[10px] font-mono font-bold text-slate-650 flex items-center gap-1 uppercase">
+                              <Coins className="w-3 h-3 text-amber-500" /> {p.points} Battle PTS
                             </span>
                           </div>
                         </div>
@@ -535,17 +535,17 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                               value={loginPasscode}
                               onChange={(e) => setLoginPasscode(e.target.value.replace(/\D/g, ''))}
                               maxLength={4}
-                              className="bg-slate-950 border border-white/10 rounded-lg w-16 px-2 py-1 text-center font-mono font-bold text-xs text-slate-100"
+                              className="bg-white border-2 border-slate-950 rounded-lg w-16 px-2 py-1 text-center font-mono font-bold text-xs text-slate-950"
                               placeholder="PASS"
                               autoFocus
                             />
-                            <button className="bg-gradient-to-r from-indigo-500 to-purple-605 text-white border border-indigo-400 hover:scale-105 active:scale-95 px-2.5 py-1 rounded-lg text-xs cursor-pointer font-bold duration-150">
+                            <button className="bg-[#ffcb05] text-slate-955 border-2 border-slate-950 hover:bg-amber-500 hover:scale-105 active:scale-95 px-2.5 py-1 rounded-lg text-xs cursor-pointer font-black duration-150">
                               OK
                             </button>
                             <button 
                               type="button" 
                               onClick={() => { setJoiningProfileId(null); setLoginPasscode(''); }}
-                              className="text-[9px] hover:text-red-400 underline uppercase pl-1 cursor-pointer font-bold bg-transparent border-none text-slate-400"
+                              className="text-[9px] hover:text-red-600 font-extrabold underline uppercase pl-1 cursor-pointer font-bold bg-transparent border-none text-slate-600"
                             >
                               Cancel
                             </button>
@@ -557,9 +557,9 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                               setLoginError(null);
                               audio.playSelect();
                             }}
-                            className="bg-indigo-505 bg-indigo-500/10 border border-indigo-500/30 hover:bg-indigo-600 hover:border-indigo-500 text-indigo-200 hover:text-white font-semibold text-[10px] px-3.5 py-2 rounded-xl cursor-pointer uppercase transition tracking-wider active:scale-95 duration-150"
+                            className="bg-indigo-550 hover:bg-indigo-600 text-white font-extrabold text-[10px] px-3.5 py-2 rounded-xl border-2 border-slate-905 shadow-[2px_2px_0_rgba(0,0,0,1)] hover:scale-105 cursor-pointer uppercase transition active:scale-95 duration-100"
                           >
-                            SELECT PROFLLE ➔
+                            SELECT PROFILE ➔
                           </button>
                         )}
                       </div>
@@ -569,38 +569,35 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
               )}
 
               {loginError && (
-                <div className="mt-3 bg-red-50 border border-red-500 text-red-550 p-2.5 rounded-xl text-[10.5px] font-mono leading-relaxed font-black uppercase text-center">
+                <div className="mt-3 bg-red-100 border-2 border-red-500 text-red-650 p-2.5 rounded-xl text-[10.5px] font-black font-mono leading-relaxed uppercase text-center">
                   ⚠️ {loginError}
                 </div>
               )}
             </div>
 
-            <div className="bg-slate-950/40 border border-white/5 rounded-2xl p-3.5 mt-4 text-[10px] leading-relaxed text-slate-400 shadow-inner">
-              🔒 <strong className="text-slate-200">SECURE LOCAL ENCRYPT:</strong> All character progressions are preserved indefinitely in your sandboxed web partition, assuring zero cloud dependency or credential leaks!
+            <div className="bg-slate-50 border-2 border-slate-950 text-slate-800 rounded-2xl p-3.5 mt-4 text-[10px] leading-relaxed font-semibold shadow-inner">
+              🔒 <strong className="text-slate-950 font-black">SECURE LOCAL ENCRYPT:</strong> All character progressions are preserved indefinitely in your sandboxed web partition, assuring zero cloud dependency or credential leaks!
             </div>
           </div>
 
         </div>
       ) : (
-        
-        /* 2. LOGGED IN MAIN ACTIVE STADIUM DASHBOARD BOARD */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-in text-slate-100">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 animate-fade-in text-slate-950">
+          {/* 2. LOGGED IN MAIN ACTIVE STADIUM DASHBOARD BOARD */}
           
           {/* STAT UPGRADES & TRAINER PORTFOLIO (LEFT COLUMN) */}
           <div className="lg:col-span-4 flex flex-col gap-4">
             
             {/* COMPACT DASHBOARD CARD */}
-            <div className="glass-panel p-4.5 rounded-3xl flex flex-col gap-3 relative overflow-hidden border border-white/5">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/[0.08] blur-xl rounded-full pointer-events-none" />
-              
-              <div className="flex items-center justify-between border-b border-white/5 pb-3 gap-2">
+            <div className="bg-white border-4 border-slate-950 p-4.5 rounded-[28px] flex flex-col gap-3 relative overflow-hidden shadow-[5px_5px_0px_#000000]">
+              <div className="flex items-center justify-between border-b-2 border-slate-950 pb-3 gap-2">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-slate-950 text-yellow-400 border border-yellow-500/20 flex items-center justify-center font-bold font-mono text-sm shadow-sm shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-slate-955 text-yellow-500 font-bold font-mono text-sm shadow-sm shrink-0 flex items-center justify-center border border-slate-950">
                     🏆
                   </div>
                   <div className="text-left">
-                    <h3 className="font-display font-black text-slate-100 text-sm uppercase tracking-wide leading-none">{currentProfile.username}</h3>
-                    <p className="text-[9.5px] font-mono font-bold text-yellow-400 flex items-center gap-1 uppercase mt-1">
+                    <h3 className="font-display font-black text-slate-955 text-sm uppercase tracking-wide leading-none">{currentProfile.username}</h3>
+                    <p className="text-[9.5px] font-mono font-black text-[#dc2626] flex items-center gap-1 uppercase mt-1">
                       CHAMPIONSHIP STAGE: {currentProfile.currentStage}
                     </p>
                   </div>
@@ -609,7 +606,7 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded-xl cursor-pointer hover:scale-105 active:scale-95 duration-100 flex items-center justify-center gap-1 text-[9.5px] uppercase font-bold"
+                  className="bg-rose-500 text-white border-2 border-slate-955 hover:bg-rose-605 px-2.5 py-1.5 rounded-xl cursor-pointer hover:scale-105 active:scale-95 duration-100 flex items-center justify-center gap-1 text-[9.5px] uppercase font-black shadow-[2px_2px_0px_rgba(0,0,0,1)]"
                   title="Log out of Trainer Account"
                 >
                   <LogOut className="w-3.5 h-3.5" /> Sign Out
@@ -617,28 +614,29 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
               </div>
 
               {/* CASH DEPOSIT METERS */}
-              <div className="bg-slate-950/80 text-white rounded-2xl border border-white/10 p-3.5 flex items-center justify-between shadow-inner">
+              <div className="bg-slate-950 text-white rounded-2xl border-2 border-slate-950 p-3.5 flex items-center justify-between shadow-inner">
                 <div className="flex items-center gap-2">
-                  <Coins className="w-5 h-5 text-yellow-400 animate-spin shrink-0" />
+                  <Coins className="w-5 h-5 text-yellow-405 animate-bounce shrink-0" />
                   <div className="text-left">
                     <span className="text-[8.5px] font-mono text-slate-400 font-bold block uppercase tracking-wider leading-none">BATTLE PROGRESS XP</span>
-                    <span className="text-lg font-black font-mono leading-none tracking-tight text-white">{currentProfile.points} PTS</span>
+                    <span className="text-lg font-black font-mono leading-none tracking-tight text-[#ffcb05]">{currentProfile.points} PTS</span>
                   </div>
                 </div>
-                <div className="text-[9px] text-right font-display text-yellow-400 uppercase tracking-widest leading-none bg-yellow-400/10 border border-yellow-400/20 px-2 py-1.5 rounded-lg font-bold">
+                <div className="text-[10px] text-right font-display text-slate-955 bg-[#ffcb05] border-2 border-slate-955 px-2.5 py-1.5 rounded-xl font-black uppercase tracking-wider">
                   Spendable
                 </div>
               </div>
+
             </div>
 
             {/* UPGRADE HUB SYSTEM */}
-            <div className="glass-panel p-4.5 sm:p-5 rounded-3xl flex flex-col gap-4 border border-white/5">
+            <div className="bg-white border-4 border-slate-950 p-4.5 sm:p-5 rounded-[28px] flex flex-col gap-4 shadow-[5px_5px_0px_#000000]">
               
-              <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <h3 className="text-xs font-bold font-display text-slate-200 uppercase tracking-widest flex items-center gap-2">
+              <div className="flex items-center justify-between border-b-2 border-slate-200 pb-3">
+                <h3 className="text-xs font-black font-display text-slate-955 uppercase tracking-widest flex items-center gap-2">
                   <Flame className="w-4 h-4 text-orange-400 animate-pulse" /> PERK UPGRADES SHOP
                 </h3>
-                <span className="text-[9px] font-mono text-indigo-400 font-bold uppercase bg-indigo-500/10 border border-indigo-400/20 px-2 py-0.5 rounded-lg">
+                <span className="text-[9px] font-mono text-indigo-705 font-black bg-indigo-50 border-2 border-slate-955 px-2 py-0.5 rounded-lg">
                   Max: Lvl 10
                 </span>
               </div>
@@ -647,124 +645,124 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
               <div className="flex flex-col gap-3.5">
                 
                 {/* ATTACK UPGRADE */}
-                <div className="bg-slate-950/40 p-2.5 rounded-2xl border border-white/5 flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-300">
-                    <span className="flex items-center gap-1 uppercase"><Sword className="w-3.5 h-3.5 text-rose-450" /> STRENGTH (ATK)</span>
-                    <span className="font-mono text-slate-200 font-extrabold">{upgradedAttack} ATK <span className="text-slate-500 font-normal">({activePokemon.attack} + {currentProfile.upgrades.attack * 2})</span></span>
+                <div className="bg-slate-50 p-2.5 rounded-2xl border-2 border-slate-950 flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                    <span className="flex items-center gap-1 uppercase"><Sword className="w-3.5 h-3.5 text-rose-500" /> STRENGTH (ATK)</span>
+                    <span className="font-mono text-slate-955 font-black">{upgradedAttack} ATK <span className="text-slate-500 font-semibold font-sans">({activePokemon.attack} + {currentProfile.upgrades.attack * 2})</span></span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 bg-slate-950 h-2.5 rounded-lg border border-white/5 overflow-hidden flex">
+                    <div className="flex-1 bg-slate-200 h-3 rounded-lg border-2 border-slate-950 overflow-hidden flex">
                       {Array.from({ length: 10 }).map((_, i) => (
                         <div 
                           key={i} 
-                          className={`flex-1 border-r border-slate-950/40 ${
+                          className={`flex-1 border-r border-slate-950 ${
                             i < currentProfile.upgrades.attack ? 'bg-rose-500' : 'bg-transparent'
                           }`} 
                         />
                       ))}
                     </div>
                     {currentProfile.upgrades.attack >= 10 ? (
-                      <span className="text-[9px] font-display text-slate-500 uppercase font-bold px-2 py-1 border border-dashed border-white/10 rounded-lg">MAX</span>
+                      <span className="text-[9px] font-display text-slate-500 uppercase font-black px-2 py-1 border-2 border-dashed border-slate-300 rounded-lg">MAX</span>
                     ) : (
                       <button
                         onClick={() => handleUpgradeStat('attack')}
-                        className="bg-indigo-650/15 border border-indigo-500/30 hover:bg-indigo-600 hover:border-indigo-500 text-indigo-200 hover:text-white font-semibold text-[9px] px-2.5 py-1 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-150"
+                        className="bg-[#ffcb05] hover:bg-yellow-450 border-2 border-slate-950 text-slate-955 font-black text-[9.5px] px-2.5 py-1.5 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-155 shadow-[1px_1px_0_#050505]"
                       >
                         <span>BOOST</span>
-                        <span className="text-[7.5px] font-mono opacity-80 mt-0.5">{getUpgradeCost(currentProfile.upgrades.attack)} XP</span>
+                        <span className="text-[7.5px] font-mono opacity-90 font-black mt-0.5">{getUpgradeCost(currentProfile.upgrades.attack)} XP</span>
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* DEFENSE UPGRADE */}
-                <div className="bg-slate-950/40 p-2.5 rounded-2xl border border-white/5 flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-300">
-                    <span className="flex items-center gap-1 uppercase"><Shield className="w-3.5 h-3.5 text-blue-450" /> ARMOR CAP (DEF)</span>
-                    <span className="font-mono text-slate-200 font-extrabold">{upgradedDefense} DEF <span className="text-slate-500 font-normal">({activePokemon.defense} + {currentProfile.upgrades.defense * 1})</span></span>
+                <div className="bg-slate-50 p-2.5 rounded-2xl border-2 border-slate-950 flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                    <span className="flex items-center gap-1 uppercase"><Shield className="w-3.5 h-3.5 text-blue-500" /> ARMOR CAP (DEF)</span>
+                    <span className="font-mono text-slate-955 font-black">{upgradedDefense} DEF <span className="text-slate-505 font-bold font-sans">({activePokemon.defense} + {currentProfile.upgrades.defense * 1})</span></span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 bg-slate-950 h-2.5 rounded-lg border border-white/5 overflow-hidden flex">
+                    <div className="flex-1 bg-slate-200 h-3 rounded-lg border-2 border-slate-950 overflow-hidden flex">
                       {Array.from({ length: 10 }).map((_, i) => (
                         <div 
                           key={i} 
-                          className={`flex-1 border-r border-slate-950/40 ${
+                          className={`flex-1 border-r border-slate-950 ${
                             i < currentProfile.upgrades.defense ? 'bg-blue-500' : 'bg-transparent'
                           }`} 
                         />
                       ))}
                     </div>
                     {currentProfile.upgrades.defense >= 10 ? (
-                      <span className="text-[9px] font-display text-slate-500 uppercase font-bold px-2 py-1 border border-dashed border-white/10 rounded-lg">MAX</span>
+                      <span className="text-[9px] font-display text-slate-505 uppercase font-black px-2 py-1 border-2 border-dashed border-slate-300 rounded-lg">MAX</span>
                     ) : (
                       <button
                         onClick={() => handleUpgradeStat('defense')}
-                        className="bg-indigo-650/15 border border-indigo-500/30 hover:bg-indigo-600 hover:border-indigo-500 text-indigo-200 hover:text-white font-semibold text-[9px] px-2.5 py-1 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-150"
+                        className="bg-[#ffcb05] hover:bg-yellow-450 border-2 border-slate-950 text-slate-955 font-black text-[9.5px] px-2.5 py-1.5 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-155 shadow-[1px_1px_0_#050505]"
                       >
                         <span>BOOST</span>
-                        <span className="text-[7.5px] font-mono opacity-80 mt-0.5">{getUpgradeCost(currentProfile.upgrades.defense)} XP</span>
+                        <span className="text-[7.5px] font-mono opacity-95 font-black mt-0.5">{getUpgradeCost(currentProfile.upgrades.defense)} XP</span>
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* HP UPGRADE */}
-                <div className="bg-slate-950/40 p-2.5 rounded-2xl border border-white/5 flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-300">
-                    <span className="flex items-center gap-1 uppercase"><Heart className="w-3.5 h-3.5 text-emerald-450" /> MAX VITALITY (HP)</span>
-                    <span className="font-mono text-slate-200 font-extrabold">{upgradedHp} HP <span className="text-slate-500 font-normal">({activePokemon.maxHp} + {currentProfile.upgrades.hp * 20})</span></span>
+                <div className="bg-slate-50 p-2.5 rounded-2xl border-2 border-slate-950 flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                    <span className="flex items-center gap-1 uppercase"><Heart className="w-3.5 h-3.5 text-emerald-500" /> MAX VITALITY (HP)</span>
+                    <span className="font-mono text-slate-955 font-black">{upgradedHp} HP <span className="text-slate-555 font-bold font-sans">({activePokemon.maxHp} + {currentProfile.upgrades.hp * 20})</span></span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 bg-slate-950 h-2.5 rounded-lg border border-white/5 overflow-hidden flex">
+                    <div className="flex-1 bg-slate-200 h-3 rounded-lg border-2 border-slate-950 overflow-hidden flex">
                       {Array.from({ length: 10 }).map((_, i) => (
                         <div 
                           key={i} 
-                          className={`flex-1 border-r border-slate-950/40 ${
+                          className={`flex-1 border-r border-slate-950 ${
                             i < currentProfile.upgrades.hp ? 'bg-emerald-500' : 'bg-transparent'
                           }`} 
                         />
                       ))}
                     </div>
                     {currentProfile.upgrades.hp >= 10 ? (
-                      <span className="text-[9px] font-display text-slate-500 uppercase font-bold px-2 py-1 border border-dashed border-white/10 rounded-lg">MAX</span>
+                      <span className="text-[9px] font-display text-[#1e293b] font-black px-2 py-1 border-2 border-dashed border-slate-300 rounded-lg">MAX</span>
                     ) : (
                       <button
                         onClick={() => handleUpgradeStat('hp')}
-                        className="bg-indigo-650/15 border border-indigo-500/30 hover:bg-indigo-600 hover:border-indigo-500 text-indigo-200 hover:text-white font-semibold text-[9px] px-2.5 py-1 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-150"
+                        className="bg-[#ffcb05] hover:bg-yellow-450 border-2 border-slate-950 text-slate-955 font-black text-[9.5px] px-2.5 py-1.5 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-155 shadow-[1px_1px_0_#050505]"
                       >
                         <span>BOOST</span>
-                        <span className="text-[7.5px] font-mono opacity-80 mt-0.5">{getUpgradeCost(currentProfile.upgrades.hp)} XP</span>
+                        <span className="text-[7.5px] font-mono opacity-95 font-black mt-0.5">{getUpgradeCost(currentProfile.upgrades.hp)} XP</span>
                       </button>
                     )}
                   </div>
                 </div>
 
                 {/* SPEED UPGRADE */}
-                <div className="bg-slate-950/40 p-2.5 rounded-2xl border border-white/5 flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center text-xs font-semibold text-slate-300">
-                    <span className="flex items-center gap-1 uppercase"><Zap className="w-3.5 h-3.5 text-amber-500 animate-pulse" /> VELOCITY SPEED (SPD)</span>
-                    <span className="font-mono text-slate-200 font-extrabold">{upgradedSpeed} SPD <span className="text-slate-500 font-normal">({activePokemon.speed} + {parseFloat(((currentProfile.upgrades.speed || 0) * 0.15).toFixed(2))})</span></span>
+                <div className="bg-slate-50 p-2.5 rounded-2xl border-2 border-slate-950 flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-800">
+                    <span className="flex items-center gap-1 uppercase"><Zap className="w-3.5 h-3.5 text-amber-505 animate-pulse" /> VELOCITY SPEED (SPD)</span>
+                    <span className="font-mono text-slate-955 font-black">{upgradedSpeed} SPD <span className="text-slate-505 font-bold font-sans">({activePokemon.speed} + {parseFloat(((currentProfile.upgrades.speed || 0) * 0.15).toFixed(2))})</span></span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 bg-slate-950 h-2.5 rounded-lg border border-white/5 overflow-hidden flex">
+                    <div className="flex-1 bg-slate-200 h-3 rounded-lg border-2 border-slate-950 overflow-hidden flex">
                       {Array.from({ length: 10 }).map((_, i) => (
                         <div 
                           key={i} 
-                          className={`flex-1 border-r border-slate-950/40 ${
+                          className={`flex-1 border-r border-slate-950 ${
                             i < currentProfile.upgrades.speed ? 'bg-amber-500' : 'bg-transparent'
                           }`} 
                         />
                       ))}
                     </div>
                     {currentProfile.upgrades.speed >= 10 ? (
-                      <span className="text-[9px] font-display text-slate-500 uppercase font-bold px-2 py-1 border border-dashed border-white/10 rounded-lg">MAX</span>
+                      <span className="text-[9px] font-display text-[#1e293b] font-black px-2 py-1 border-2 border-dashed border-slate-300 rounded-lg">MAX</span>
                     ) : (
                       <button
                         onClick={() => handleUpgradeStat('speed')}
-                        className="bg-indigo-650/15 border border-indigo-500/30 hover:bg-indigo-600 hover:border-indigo-500 text-indigo-200 hover:text-white font-semibold text-[9px] px-2.5 py-1 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-150"
+                        className="bg-[#ffcb05] hover:bg-yellow-450 border-2 border-slate-950 text-slate-955 font-black text-[9.5px] px-2.5 py-1.5 rounded-lg cursor-pointer whitespace-nowrap active:scale-95 transition flex flex-col items-center leading-none justify-center duration-155 shadow-[1px_1px_0_#050505]"
                       >
                         <span>BOOST</span>
-                        <span className="text-[7.5px] font-mono opacity-80 mt-0.5">{getUpgradeCost(currentProfile.upgrades.speed)} XP</span>
+                        <span className="text-[7.5px] font-mono opacity-95 font-black mt-0.5">{getUpgradeCost(currentProfile.upgrades.speed)} XP</span>
                       </button>
                     )}
                   </div>
@@ -773,17 +771,17 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
               </div>
 
               {/* ROSTER SWAP MODAL TRIGGER */}
-              <div className="border-t border-white/5 pt-4 flex flex-col items-center gap-2 mt-1">
+              <div className="border-t-2 border-slate-200 pt-4 flex flex-col items-center gap-2 mt-1">
                 <button
                   type="button"
                   onClick={() => { setIsSwappingPokemon(true); audio.playSelect(); }}
-                  className="w-full text-[10.5px] font-display font-extrabold bg-[#4f46e5]/10 border border-[#4f46e5]/30 text-indigo-200 hover:bg-[#4f46e5] hover:text-white py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer uppercase transition duration-155 active:scale-95"
+                  className="w-full text-[10.5px] font-display font-black bg-indigo-55 bg-indigo-50 border-3 border-slate-955 text-indigo-705 hover:bg-indigo-600 hover:text-white py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 cursor-pointer uppercase transition duration-155 active:scale-95 shadow-[3px_3px_0_#000]"
                 >
                   <RefreshCw className="w-3.5 h-3.5 animate-spin duration-3000" /> SWAP ACTIVE MONSTER
                 </button>
 
                 <div className="w-full mt-2.5 flex justify-center scale-95">
-                  <PokemonCard pokemon={fullyUpgradedPokemon} label="CURRENT HERO" badgeColor="bg-yellow-400 text-slate-950 font-display border border-yellow-500" />
+                  <PokemonCard pokemon={fullyUpgradedPokemon} label="CURRENT HERO" badgeColor="bg-[#ffcb05] text-slate-955 font-display border-2 border-slate-950 font-black" />
                 </div>
               </div>
 
@@ -795,25 +793,25 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
           <div className="lg:col-span-8 flex flex-col gap-4">
             
             {/* THE ARENA MAP JOURNEY */}
-            <div className="glass-panel p-5 rounded-3xl flex-1 flex flex-col justify-between border border-white/5">
+            <div className="bg-white border-4 border-slate-950 p-5 rounded-[28px] flex-1 flex flex-col justify-between shadow-[5px_5px_0px_#000000]">
               <div>
-                <div className="flex items-center justify-between border-b border-white/5 pb-3 gap-2 flex-wrap">
+                <div className="flex items-center justify-between border-b-2 border-slate-200 pb-3 gap-2 flex-wrap">
                   <div className="text-left">
-                    <h2 className="text-lg sm:text-xl font-display text-slate-100 font-extrabold tracking-wider flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-display text-slate-955 font-black tracking-wider flex items-center gap-2">
                       🗺️ STADIUM CHAMPIONSHIP CAMPAIGN
                     </h2>
-                    <p className="text-[10.5px] text-slate-400 mt-0.5 leading-relaxed">
+                    <p className="text-[10.5px] text-slate-650 mt-0.5 leading-relaxed font-bold">
                       Advance stage by stage. Each tier introduces higher-scaled rival metrics and rewards premium Battle PTS!
                     </p>
                   </div>
-                  <div className="px-3.5 py-1 bg-yellow-405/15 border border-yellow-500/25 text-yellow-500 font-display font-bold text-[10px] tracking-wider shrink-0 uppercase rounded-xl">
+                  <div className="px-3.5 py-1 bg-[#ffcb05] border-2 border-slate-955 text-slate-955 font-display font-black text-[10px] tracking-wider shrink-0 uppercase rounded-xl shadow-[1px_1px_0_rgba(0,0,0,1)]">
                     7 Stages Map
                   </div>
                 </div>
 
                 {/* JOURNEY PATH NODES */}
                 <div className="flex flex-col gap-6 py-6 relative max-w-xl mx-auto pl-4">
-                  <div className="absolute top-10 bottom-10 left-[27px] w-1 bg-gradient-to-b from-indigo-500 via-purple-600 to-amber-500 opacity-20 z-0 pointer-events-none" />
+                  <div className="absolute top-10 bottom-10 left-[27px] w-1 bg-slate-950 opacity-30 z-0 pointer-events-none" />
 
                   {CAREER_STAGES.map((st) => {
                     const isCompleted = st.level < currentProfile.currentStage;
@@ -826,66 +824,66 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                       <div
                         key={st.level}
                         onClick={() => clickStageNode(st)}
-                        className={`flex items-start gap-4 relative z-10 p-3 sm:p-4 rounded-3xl border transition-all duration-300 ${
+                        className={`flex items-start gap-4 relative z-10 p-3 sm:p-4 rounded-2xl border-3 transition-all duration-300 shadow-[3px_3px_0px_#000000] ${
                           isCompleted
-                            ? 'bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 shadow-sm'
+                            ? 'bg-emerald-50 border-emerald-500 hover:bg-emerald-100 cursor-pointer hover:scale-101'
                             : isActive
-                              ? 'bg-indigo-500/10 border-indigo-500/40 hover:bg-indigo-500/15 cursor-pointer shadow-lg shadow-indigo-500/5'
-                              : 'bg-slate-950/20 border-white/5 opacity-40 pointer-events-none'
+                              ? 'bg-blue-50 border-blue-500 hover:bg-blue-100 cursor-pointer hover:scale-102 ring-2 ring-[#ffcb05]'
+                              : 'bg-slate-100 border-slate-350 opacity-50 pointer-events-none'
                         }`}
                       >
                         {isActive && (
-                          <span className="absolute -top-3 right-3 bg-red-650 bg-red-600 border border-red-400 text-white px-2.5 py-0.5 text-[7.5px] font-mono rounded-full font-black uppercase tracking-wider scale-110 shadow animate-bounce">
+                          <span className="absolute -top-3 right-3 bg-[#dc2626] border-2 border-slate-955 text-white px-2.5 py-0.5 text-[8px] font-mono rounded-full font-black uppercase tracking-wider scale-110 shadow-[1px_1px_0_#000] animate-bounce">
                             ACTIVE RIVAL ⚔️
                           </span>
                         )}
 
                         {/* STAGE SPOT BULLET */}
                         <div className="shrink-0 flex items-center justify-center relative">
-                          <div className={`w-12 h-12 rounded-full border flex items-center justify-center font-display font-black text-sm shadow-inner duration-200 ${
+                          <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center font-display font-black text-sm shadow-inner duration-200 ${
                             isCompleted
-                              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                              ? 'bg-emerald-500 text-white border-slate-955'
                               : isActive
-                                ? 'bg-[#facc15] font-black text-slate-950 scale-105 shadow-md shadow-yellow-400/20 border-yellow-500'
-                                : 'bg-slate-900 border-white/5 text-slate-600'
+                                ? 'bg-[#ffcb05] font-black text-slate-955 scale-105 shadow-md border-slate-955'
+                                : 'bg-slate-300 border-slate-400 text-slate-500'
                           }`}>
                             {isCompleted ? '✓' : st.level}
                           </div>
 
                           {/* Avatar overlay */}
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border border-white/10 bg-slate-950 overflow-hidden p-0.5 flex items-center justify-center shadow-lg">
-                            <img src={cpuChar.imageUrl} alt={cpuChar.name} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-slate-950 bg-white overflow-hidden p-0.5 flex items-center justify-center shadow-md">
+                            <img src={cpuChar.imageUrl} alt={cpuChar.name} className="w-full h-full object-contain img-pixelated" referrerPolicy="no-referrer" />
                           </div>
                         </div>
 
                         {/* DESCRIPTION CONTAINER */}
                         <div className="flex-1 text-left min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h4 className="font-display font-bold text-xs sm:text-sm text-slate-100 uppercase tracking-wide group-hover:text-[#4f46e5]">
+                            <h4 className="font-display font-black text-xs sm:text-sm text-slate-955 uppercase tracking-wide">
                               Stage {st.level}: {st.name}
                             </h4>
-                            {isLocked && <Lock className="w-3.5 h-3.5 text-slate-500 shrink-0" />}
-                            {isCompleted && <span className="text-[8px] font-mono text-emerald-400 font-extrabold bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded-full leading-none uppercase shrink-0">Defeated</span>}
+                            {isLocked && <Lock className="w-3.5 h-3.5 text-slate-550 shrink-0" />}
+                            {isCompleted && <span className="text-[8px] font-mono text-emerald-600 font-extrabold bg-emerald-100 border-2 border-emerald-500 px-1.5 py-0.2 rounded-full leading-none uppercase shrink-0">Defeated</span>}
                           </div>
 
-                          <p className="text-[10px] sm:text-xs text-slate-400 font-light leading-relaxed mt-1">
+                          <p className="text-[10px] sm:text-xs text-slate-700 font-bold leading-relaxed mt-1">
                             {st.description}
                           </p>
 
                           <div className="flex flex-wrap items-center gap-1.5 mt-2 font-mono text-[9px] sm:text-[10px] font-bold">
-                            <span className="bg-slate-950/60 border border-white/5 text-slate-400 px-2 py-0.5 rounded uppercase">
-                              Rival: <strong className="font-sans font-black text-slate-200 uppercase">{cpuChar.name}</strong>
+                            <span className="bg-slate-950 text-white px-2 py-0.5 rounded border border-slate-950">
+                              Rival: <strong className="font-sans font-black text-[#ffcb05] uppercase">{cpuChar.name}</strong>
                             </span>
-                            <span className={`px-2 py-0.5 rounded uppercase border ${
+                            <span className={`px-2 py-0.5 rounded uppercase border-2 border-slate-950 ${
                               st.difficulty === 'easy'
-                                ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                ? 'bg-green-100 text-green-700'
                                 : st.difficulty === 'normal'
-                                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                                  : 'bg-red-500/10 text-red-500 border-red-500/20'
+                                  ? 'bg-blue-105 bg-blue-100 text-blue-700'
+                                  : 'bg-red-100 text-red-700'
                             }`}>
                               Difficulty: {st.difficulty.toUpperCase()}
                             </span>
-                            <span className="bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 px-2 py-0.5 rounded uppercase flex items-center gap-1">
+                            <span className="bg-[#ffcb05] border-2 border-slate-950 text-slate-955 px-2 py-0.5 rounded uppercase flex items-center gap-1">
                               💎 Reward: +{st.rewardPoints} XP
                             </span>
                           </div>
@@ -898,29 +896,29 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
               </div>
 
               {/* DYNAMIC TRAINER ACHIEVEMENTS SECTION (ENHANCEMENT) */}
-              <div className="border-t border-white/5 pt-5 mt-5">
-                <h3 className="text-xs font-bold font-display text-slate-200 uppercase tracking-widest mb-3 flex items-center gap-1.5 pl-1">
-                  <Award className="w-4.5 h-4.5 text-yellow-500 animate-pulse fill-yellow-405/10" /> TRAINER ACHIEVEMENTS ({trainerAchievements.filter(a => a.unlocked).length}/{trainerAchievements.length})
+              <div className="border-t-2 border-slate-200 pt-5 mt-5">
+                <h3 className="text-xs font-black font-display text-slate-955 uppercase tracking-widest mb-3 flex items-center gap-1.5 pl-1">
+                  <Award className="w-4.5 h-4.5 text-yellow-500 animate-pulse fill-yellow-450" /> TRAINER ACHIEVEMENTS ({trainerAchievements.filter(a => a.unlocked).length}/{trainerAchievements.length})
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {trainerAchievements.map((ac) => (
                     <div 
                       key={ac.id} 
-                      className={`p-3 rounded-2xl border flex items-center gap-3 transition-all relative overflow-hidden ${
+                      className={`p-3 rounded-2xl border-2 flex items-center gap-3 transition-all relative overflow-hidden ${
                         ac.unlocked 
-                          ? 'bg-slate-950/40 border-white/5 shadow-sm' 
-                          : 'bg-slate-950/20 border-dashed border-white/5 opacity-40'
+                          ? 'bg-slate-50 border-slate-950 shadow-[2px_2px_0px_#000000]' 
+                          : 'bg-slate-100 border-dashed border-slate-300 opacity-50'
                       }`}
                     >
-                      <div className="text-2xl w-9 h-9 flex items-center justify-center rounded-xl bg-slate-950 border border-white/5 shadow">
+                      <div className="text-2xl w-9 h-9 flex items-center justify-center rounded-xl bg-white border-2 border-slate-955 shadow">
                         {ac.unlocked ? ac.icon : '🔒'}
                       </div>
                       <div className="text-left min-w-0 flex-1">
-                        <span className={`text-[10.5px] font-display uppercase block tracking-wider truncate leading-tight ${ac.unlocked ? 'text-slate-100 font-bold' : 'text-slate-500'}`}>
+                        <span className={`text-[10.5px] font-display uppercase block tracking-wider truncate leading-tight ${ac.unlocked ? 'text-slate-955 font-black' : 'text-slate-400 font-bold'}`}>
                           {ac.title}
                         </span>
-                        <span className="text-[9px] text-slate-400 font-normal block leading-tight mt-0.5 line-clamp-1">
+                        <span className="text-[9px] text-slate-650 font-bold block leading-tight mt-0.5 line-clamp-1">
                           {ac.desc}
                         </span>
                       </div>
@@ -941,37 +939,36 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
 
           {/* CHAMPIONSHIP LAUNCH MODAL */}
           {selectedStage && (
-            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in text-slate-100 selection:bg-yellow-400 selection:text-slate-950">
-              <div className="bg-slate-900/90 border border-white/10 p-5 sm:p-6 rounded-3xl max-w-sm w-full text-center relative overflow-hidden backdrop-blur-xl shadow-2xl text-slate-100">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-yellow-400/[0.05] blur-xl rounded-full pointer-events-none" />
+            <div className="fixed inset-0 bg-slate-955/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in text-slate-955 selection:bg-[#ffcb05] selection:text-slate-955">
+              <div className="bg-white border-4 border-slate-955 p-5 sm:p-6 rounded-[28px] max-w-sm w-full text-center relative overflow-hidden shadow-[8px_8px_0px_#000000]">
                 
-                <h3 className="text-[10px] font-display text-indigo-400 font-bold uppercase tracking-widest bg-indigo-500/10 border border-indigo-400/20 px-4 py-1.5 rounded-full w-max mx-auto mb-3">
+                <h3 className="text-[10px] font-mono text-slate-955 font-black uppercase tracking-widest bg-yellow-50 border-2 border-slate-955 px-4 py-1.5 rounded-full w-max mx-auto mb-3">
                   STADIUM MATCH SELECTION
                 </h3>
 
-                <h2 className="text-xl font-display font-black text-slate-105 tracking-wide uppercase mb-1">
+                <h2 className="text-xl font-display font-black text-slate-955 tracking-wide uppercase mb-1">
                   Ready for Combat?
                 </h2>
-                <p className="text-xs text-slate-400 font-light mb-6 leading-relaxed max-w-xs mx-auto">
-                  By starting this campaign duel, you will control your fully upgraded <span className="text-indigo-400 font-bold">{fullyUpgradedPokemon.name}</span> in the arena!
+                <p className="text-xs text-slate-700 font-bold mb-6 leading-relaxed max-w-xs mx-auto">
+                  By starting this campaign duel, you will control your fully upgraded <span className="text-indigo-650 font-black">{fullyUpgradedPokemon.name}</span> in the arena!
                 </p>
 
                 {/* VISUAL VS BAR */}
-                <div className="flex items-center justify-center gap-3.5 my-4 bg-slate-950/80 border border-white/5 p-4 rounded-2xl">
+                <div className="flex items-center justify-center gap-3.5 my-4 bg-slate-50 border-2 border-slate-955 p-4 rounded-2xl">
                   {/* PLAYER COLUMN */}
                   <div className="flex-1 flex flex-col items-center min-w-0">
-                    <div className="w-11 h-11 rounded-xl border border-white/10 overflow-hidden bg-slate-900 p-0.5 shadow-sm">
+                    <div className="w-11 h-11 rounded-xl border-2 border-slate-955 overflow-hidden bg-white p-0.5 shadow-sm">
                       <img src={fullyUpgradedPokemon.imageUrl} alt={fullyUpgradedPokemon.name} className="w-full h-full object-contain" referrerPolicy="no-referrer" />
                     </div>
-                    <span className="text-[9.5px] font-display text-yellow-400 font-bold mt-2 leading-none uppercase truncate w-full text-center">{fullyUpgradedPokemon.name}</span>
-                    <span className="text-[8px] font-mono text-slate-500 font-semibold uppercase leading-none mt-1">Lvl {currentProfile.currentStage} (Ally)</span>
+                    <span className="text-[10px] font-display text-slate-955 font-black mt-2 leading-none uppercase truncate w-full text-center">{fullyUpgradedPokemon.name}</span>
+                    <span className="text-[8.5px] font-mono text-slate-600 font-bold uppercase leading-none mt-1">Lvl {currentProfile.currentStage} (Ally)</span>
                   </div>
 
-                  <div className="font-mono font-extrabold text-[10px] text-white bg-slate-950 px-2.5 py-1.5 border border-white/5 rounded-lg shrink-0">VS</div>
+                  <div className="font-mono font-black text-[10px] text-white bg-slate-955 px-2.5 py-1.5 border-2 border-slate-955 rounded-lg shrink-0">VS</div>
 
                   {/* CPU COLUMN */}
                   <div className="flex-1 flex flex-col items-center min-w-0">
-                    <div className="w-11 h-11 rounded-xl border border-white/10 overflow-hidden bg-slate-900 p-0.5 shadow-sm">
+                    <div className="w-11 h-11 rounded-xl border-2 border-slate-955 overflow-hidden bg-white p-0.5 shadow-sm">
                       <img 
                         src={([...POKEMONS, ...BOOSTER_SECRET_POKEMONS].find(p => p.id === selectedStage.opponentId) || POKEMONS[1]).imageUrl} 
                         alt="Opponent" 
@@ -979,23 +976,23 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                         referrerPolicy="no-referrer"
                       />
                     </div>
-                    <span className="text-[9.5px] font-display text-rose-450 font-bold mt-2 leading-none uppercase truncate w-full text-center">
+                    <span className="text-[10px] font-display text-[#dc2626] font-black mt-2 leading-none uppercase truncate w-full text-center">
                       {([...POKEMONS, ...BOOSTER_SECRET_POKEMONS].find(p => p.id === selectedStage.opponentId) || POKEMONS[1]).name}
                     </span>
-                    <span className="text-[8px] font-mono text-slate-500 font-bold uppercase leading-none mt-1">NPC Challenger</span>
+                    <span className="text-[8.5px] font-mono text-slate-600 font-bold uppercase leading-none mt-1">NPC Challenger</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2 mt-4">
                   <button
                     onClick={launchCareerBattle}
-                    className="w-full bg-gradient-to-r from-yellow-405 to-amber-500 hover:from-yellow-400 hover:to-amber-600 text-slate-950 font-display font-extrabold text-xs py-3.5 rounded-2xl uppercase tracking-widest cursor-pointer transition active:scale-95 duration-100 shadow-md shadow-amber-505/10"
+                    className="w-full bg-[#facc15] hover:bg-[#ffcb05] text-slate-955 border-3 border-slate-955 font-display font-black text-xs py-3.5 rounded-2xl uppercase tracking-wider cursor-pointer shadow-[3px_3px_0px_#000] transition active:scale-95 duration-100"
                   >
                     ENTER ARENA! ⚔️
                   </button>
                   <button
                     onClick={() => { setSelectedStage(null); audio.playSelect(); }}
-                    className="w-full bg-slate-800/80 hover:bg-slate-800 text-slate-300 font-display font-bold text-[10px] py-2.5 rounded-xl uppercase tracking-wider cursor-pointer border border-white/5 transition active:scale-95 duration-100"
+                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-705 border-2 border-slate-955 font-display font-black text-[10px] py-2.5 rounded-xl uppercase tracking-wider cursor-pointer border shadow-[2px_2px_0px_#000] transition active:scale-95 duration-100"
                   >
                     Go Back
                   </button>
@@ -1007,23 +1004,22 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
 
           {/* ACTIVE ROSTER SWAP DIALOG */}
           {isSwappingPokemon && (
-            <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in text-slate-100 selection:bg-yellow-400 selection:text-slate-950">
-              <div className="bg-slate-900/90 border border-white/10 p-5 sm:p-6 rounded-3xl max-w-lg w-full text-slate-100 relative overflow-hidden backdrop-blur-xl shadow-2xl">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-505/[0.05] blur-xl rounded-full pointer-events-none" />
+            <div className="fixed inset-0 bg-slate-955/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in text-slate-955 selection:bg-yellow-405 selection:text-slate-955">
+              <div className="bg-white border-4 border-slate-955 p-5 sm:p-6 rounded-[28px] max-w-lg w-full text-slate-955 relative overflow-hidden shadow-[8px_8px_0px_#000000]">
                 
-                <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4">
-                  <h3 className="font-display font-bold text-base text-slate-100 uppercase tracking-wide">
+                <div className="flex items-center justify-between border-b-2 border-slate-200 pb-3 mb-4">
+                  <h3 className="font-display font-black text-base text-slate-955 uppercase tracking-wide">
                     POKÉMON ROSTER CATALOGUE
                   </h3>
                   <button 
                     onClick={() => { setIsSwappingPokemon(false); audio.playSelect(); }}
-                    className="p-1 text-slate-400 hover:text-white hover:scale-105 duration-100 cursor-pointer font-bold text-sm bg-transparent border-none"
+                    className="py-1 px-2.5 rounded-lg border-2 border-slate-955 text-slate-800 hover:bg-slate-100 hover:scale-105 duration-100 cursor-pointer font-black text-xs uppercase"
                   >
                     Close ✕
                   </button>
                 </div>
 
-                <p className="text-xs text-slate-400 font-light mb-4 leading-relaxed text-justify">
+                <p className="text-xs text-slate-750 font-bold mb-4 leading-relaxed text-justify">
                   Select any of your unlocked classic base characters or custom legends unlocked from mystery Booster foils. All of your Trainer EXP upgrades will immediately transfer to your selected fighter!
                 </p>
 
@@ -1034,21 +1030,21 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                       <button
                         key={p.id}
                         onClick={() => selectNewHero(p.id)}
-                        className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 cursor-pointer relative transition duration-200 hover:scale-[1.03] ${
+                        className={`p-2.5 rounded-xl border-2 flex flex-col items-center gap-1.5 cursor-pointer relative transition duration-200 hover:scale-[1.03] ${
                           isCurrent 
-                            ? 'bg-indigo-500/20 border-indigo-400 text-indigo-200 font-extrabold shadow-md shadow-indigo-550/10' 
-                            : 'bg-slate-950/40 border-white/5 hover:bg-slate-950/60 text-slate-300'
+                            ? 'bg-indigo-50 border-indigo-550 text-indigo-705 font-black shadow-[2px_2px_0px_#000]' 
+                            : 'bg-slate-50 border-slate-350 hover:bg-slate-100 text-slate-850'
                         }`}
                       >
                         {p.isSecret && (
-                          <span className="absolute -top-1.5 -right-1 bg-yellow-400 text-slate-950 text-[6.5px] font-bold px-1.5 py-0.2 rounded-full scale-80 animate-pulse font-mono block">
+                          <span className="absolute -top-1.5 -right-1 bg-[#ffcb05] border border-slate-955 text-slate-955 text-[6.5px] font-black px-1.5 py-0.2 rounded-full scale-85 animate-pulse font-mono block">
                             RARE
                           </span>
                         )}
-                        <div className="w-10 h-10 rounded-full border border-white/10 bg-slate-950 flex items-center justify-center p-0.5 shadow-sm">
+                        <div className="w-10 h-10 rounded-full border border-slate-350 bg-white flex items-center justify-center p-0.5 shadow-sm">
                           <img src={p.imageUrl} alt={p.name} className="w-9 h-9 object-contain" referrerPolicy="no-referrer" />
                         </div>
-                        <span className="text-[10px] font-display font-semibold text-slate-100 truncate w-full text-center uppercase tracking-wide">
+                        <span className="text-[10px] font-display font-black text-slate-955 truncate w-full text-center uppercase tracking-wide">
                           {p.name}
                         </span>
                       </button>
@@ -1056,10 +1052,10 @@ export default function CareerMode({ onStartCareerFight, savedProfilesUpdatedTri
                   })}
                 </div>
 
-                <div className="pt-4 border-t border-white/5 mt-4 text-center">
+                <div className="pt-4 border-t-2 border-slate-205 border-slate-200 mt-4 text-center">
                   <button
                     onClick={() => { setIsSwappingPokemon(false); audio.playSelect(); }}
-                    className="bg-indigo-650/10 hover:bg-indigo-600 hover:text-white text-indigo-200 font-display border border-indigo-505/30 px-6 py-3 rounded-xl text-xs uppercase cursor-pointer transition active:scale-95 duration-100"
+                    className="bg-indigo-50 hover:bg-indigo-100 text-indigo-705 font-display border-2 border-slate-955 px-6 py-3 rounded-xl text-xs uppercase font-black cursor-pointer shadow-[3px_3px_0px_#000] transition active:scale-95 duration-100"
                   >
                     Return to Campaign
                   </button>
